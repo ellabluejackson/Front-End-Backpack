@@ -4,334 +4,44 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Digital Backpack</title>
-  <style>
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    :root {
-      --primary: #6C63FF;
-      --primary-light: #a5a0ff;
-      --accent: #FF6584;
-      --bg: #f0f4ff;
-      --surface: #ffffff;
-      --text: #2d3436;
-      --text-light: #636e72;
-      --border: #dfe6e9;
-      --nav-bg: #6C63FF;
-      --radius: 16px;
-    }
-
-    body {
-      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-/* Banner Header */
-    .top-header {
-      background: linear-gradient(135deg, #6C63FF 0%, #a78bfa 100%);
-      padding: 18px 32px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .top-header .backpack-icon {
-      font-size: 2rem;
-    }
-
-    .top-header h1 {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: #fff;
-      letter-spacing: -0.5px;
-    }
-
-    .top-header h1 span {
-      font-weight: 400;
-      opacity: 0.85;
-    }
-
-/* Navbar */
-    .toolbar {
-      background: var(--surface);
-      border-bottom: 2px solid var(--border);
-      padding: 0 24px;
-      display: flex;
-      justify-content: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-
-    .toolbar nav {
-      display: flex;
-      gap: 4px;
-      max-width: 700px;
-      width: 100%;
-      justify-content: space-between;
-    }
-
-    .toolbar a {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      text-decoration: none;
-      color: var(--text-light);
-      font-size: 0.78rem;
-      font-weight: 600;
-      padding: 12px 16px;
-      border-radius: 12px;
-      transition: all 0.2s ease;
-      position: relative;
-    }
-
-    .toolbar a .nav-icon {
-      font-size: 1.4rem;
-      line-height: 1;
-    }
-
-    .toolbar a:hover {
-      background: var(--bg);
-      color: var(--primary);
-    }
-
-    .toolbar a.active {
-      color: var(--primary);
-      background: #eef0ff;
-    }
-
-    .toolbar a.active::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 20%;
-      right: 20%;
-      height: 3px;
-      border-radius: 3px 3px 0 0;
-      background: var(--primary);
-    }
-
-/* New button in a different color*/
-    .toolbar .nav-new-wrapper {
-      position: relative;
-    }
-
-    .toolbar a.nav-new {
-      color: var(--accent);
-    }
-
-    .toolbar a.nav-new:hover {
-      background: #fff0f3;
-      color: #e84565;
-    }
-
-    /* Dropdown menu for New button */
-    .new-dropdown {
-      display: none;
-      position: absolute;
-      top: calc(100% + 10px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      min-width: 180px;
-      padding: 8px 0;
-      z-index: 200;
-      animation: dropdownFade 0.15s ease;
-    }
-
-    .new-dropdown.show {
-      display: block;
-    }
-
-    @keyframes dropdownFade {
-      from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
-      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-    }
-
-    .new-dropdown a {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 18px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text);
-      text-decoration: none;
-      border-radius: 0;
-      transition: background 0.15s;
-    }
-
-    .new-dropdown a:hover {
-      background: var(--bg);
-      color: var(--primary);
-    }
-
-    .new-dropdown a .dropdown-icon {
-      font-size: 1.2rem;
-    }
-
- /* Backpack Area*/
-    .main-content {
-      flex: 1;
-      max-width: 960px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 40px 24px 60px;
-    }
-
-/* Title */
-    .page-title {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 8px;
-    }
-
-    .page-subtitle {
-      font-size: 0.95rem;
-      color: var(--text-light);
-      margin-bottom: 32px;
-    }
-
-/* Empty Backpack */
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 80px 24px;
-      text-align: center;
-    }
-
-    .empty-state .empty-icon {
-      font-size: 4rem;
-      margin-bottom: 20px;
-      opacity: 0.6;
-    }
-
-    .empty-state h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 8px;
-    }
-
-    .empty-state p {
-      font-size: 0.95rem;
-      color: var(--text-light);
-      max-width: 360px;
-      line-height: 1.6;
-      margin-bottom: 28px;
-    }
-
-    .empty-state .btn-add {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      padding: 12px 28px;
-      border-radius: 999px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 4px 14px rgba(108, 99, 255, 0.35);
-      text-decoration: none;
-    }
-
-    .empty-state .btn-add:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(108, 99, 255, 0.45);
-    }
-
- /* Folder Grid (placeholder for future)*/
-    .folders-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 20px;
-    }
-
-/* Footer*/
-    footer {
-      text-align: center;
-      padding: 20px 24px;
-      font-size: 0.8rem;
-      color: var(--text-light);
-      border-top: 1px solid var(--border);
-      background: var(--surface);
-    }
-
-    @media (max-width: 600px) {
-      .top-header {
-        padding: 14px 20px;
-      }
-
-      .top-header h1 {
-        font-size: 1.2rem;
-      }
-
-      .toolbar a {
-        padding: 10px 10px;
-        font-size: 0.7rem;
-      }
-
-      .toolbar a .nav-icon {
-        font-size: 1.2rem;
-      }
-
-      .main-content {
-        padding: 28px 16px 40px;
-      }
-
-      .empty-state {
-        padding: 50px 16px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- Top Header -->
+  <!-- Top Header (Backpack branding + StudyMax fixed nav style) -->
   <header class="top-header">
-    <span class="backpack-icon">🎒</span>
-    <h1>My Digital Backpack</h1>
+    <div class="nav-container">
+      <div class="header-brand">
+        <span class="backpack-icon">🎒</span>
+        <h1>My Digital Backpack</h1>
+      </div>
+      <div class="auth-buttons">
+        <a href="#" class="btn btn-login">Log In</a>
+        <a href="accountcreate.html" class="btn btn-signup">Sign Up</a>
+      </div>
+    </div>
   </header>
 
-  <!-- Navbar -->
+  <!-- Sticky Toolbar Nav (Backpack nav, StudyMax sticky style) -->
   <div class="toolbar">
     <nav>
-      <a href="#" class="active">
+      <a href="#home" class="active" onclick="showPage('home', this)">
         <span class="nav-icon">🏠</span>
         Home
       </a>
-      <a href="#">
+      <a href="#" onclick="showPage('timer', this)">
         <span class="nav-icon">⏱️</span>
         Timer
       </a>
-      <a href="#">
+      <a href="#" onclick="showPage('games', this)">
         <span class="nav-icon">🎮</span>
         Games
       </a>
-      <a href="#">
+      <a href="#" onclick="showPage('music', this)">
         <span class="nav-icon">🎵</span>
         Music
       </a>
-      <a href="#">
+      <a href="#" onclick="showPage('todo', this)">
         <span class="nav-icon">✅</span>
         To Do
       </a>
@@ -341,57 +51,532 @@
           New
         </a>
         <div class="new-dropdown" id="newDropdown">
-          <a href="#" onclick="handleNew('folder')">Folder</a>
-          <a href="#" onclick="handleNew('notebook')">Notebook</a>
-          <a href="#" onclick="handleNew('flashcards')">Flashcards</a>
+          <a href="#" onclick="handleNew('folder')"><span class="dropdown-icon">📁</span> Folder</a>
+          <a href="#" onclick="handleNew('notebook')"><span class="dropdown-icon">📓</span> Notebook</a>
+          <a href="#" onclick="handleNew('flashcards')"><span class="dropdown-icon">🃏</span> Flashcards</a>
         </div>
       </div>
     </nav>
   </div>
 
-  <!-- home-->
-  <main class="main-content">
-    <p class="page-title">Home</p>
-    <p class="page-subtitle">Your folders, notebooks, and flashcards will show up here.</p>
+  <main>
 
-    <!-- folders dynamically inserted into grid later -->
-    <div class="folders-grid">
-      <!-- future folder can cards go here -->
+    <!-- ========== HOME PAGE ========== -->
+    <div id="page-home" class="page active">
+
+      <!-- Hero Section -->
+      <section class="hero">
+        <div class="hero-content">
+          <h1>🎒 First Digital Backpack</h1>
+          <p class="tagline">A Kid's First Introduction to Digital Note Taking</p>
+          <p class="hero-description">
+            Designed for ages 6–14, First Digital Backpack keeps kids focused and learning — no ads, no subscription fees, no overwhelm. Create folders, notebooks, and flashcards. Set a study timer, take a game break, and listen to lo-fi music, all without switching tabs.
+          </p>
+          <div class="cta-buttons">
+            <a href="accountcreate.html" class="btn btn-signup btn-large">Get Started Free</a>
+            <a href="#" class="btn btn-login btn-large">Log In</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Demo Tabs Section -->
+      <section class="demo-section">
+        <div class="container">
+          <h2 class="section-title">Everything Kids Need to Study</h2>
+          <p class="section-subtitle">One backpack. No distractions. Built for ages 6–14.</p>
+
+          <div class="demo-tabs">
+            <input type="radio" name="demo-tab" id="tab-schedule" checked>
+            <input type="radio" name="demo-tab" id="tab-tasks">
+            <input type="radio" name="demo-tab" id="tab-progress">
+
+            <div class="tab-labels">
+              <label for="tab-schedule" class="tab-btn">
+                <span class="tab-icon">📁</span>
+                Folders & Notes
+              </label>
+              <label for="tab-tasks" class="tab-btn">
+                <span class="tab-icon">🃏</span>
+                Flashcards
+              </label>
+              <label for="tab-progress" class="tab-btn">
+                <span class="tab-icon">⏱️</span>
+                Timer & Focus
+              </label>
+            </div>
+
+            <div class="demo-content">
+              <!-- Tab 1: Folders & Notes -->
+              <div class="tab-content schedule-content">
+                <div class="demo-visual">
+                  <div class="schedule-mockup">
+                    <div class="schedule-header">
+                      <h3>My Digital Backpack</h3>
+                      <span class="week-indicator">Home</span>
+                    </div>
+                    <div class="schedule-grid">
+                      <div class="time-slot">
+                        <span class="time">📁</span>
+                        <div class="class-block math">Science</div>
+                      </div>
+                      <div class="time-slot">
+                        <span class="time">📁</span>
+                        <div class="class-block science">Math</div>
+                      </div>
+                      <div class="time-slot">
+                        <span class="time">📁</span>
+                        <div class="class-block english">English</div>
+                      </div>
+                      <div class="time-slot">
+                        <span class="time">📓</span>
+                        <div class="class-block study">Notebook – Unit 1</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="feature-description">
+                    <h4>Organize by Subject</h4>
+                    <p>Kids create folders for each subject and fill them with notebooks and flashcard decks — just like a real backpack, but digital and always organized.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab 2: Flashcards -->
+              <div class="tab-content tasks-content">
+                <div class="demo-visual">
+                  <div class="tasks-mockup">
+                    <div class="task-header">
+                      <h3>Unit 1 – Living Organisms</h3>
+                      <span class="date-indicator">Science 🃏</span>
+                    </div>
+                    <div class="task-list">
+                      <div class="task-item high-priority">
+                        <span class="task-checkbox"></span>
+                        <div class="task-info">
+                          <span class="task-title">What is a cell?</span>
+                          <span class="task-meta">Tap to flip</span>
+                        </div>
+                        <span class="priority-badge high">Front</span>
+                      </div>
+                      <div class="task-item medium-priority">
+                        <span class="task-checkbox"></span>
+                        <div class="task-info">
+                          <span class="task-title">The basic unit of all living things</span>
+                          <span class="task-meta">Tap to flip</span>
+                        </div>
+                        <span class="priority-badge medium">Back</span>
+                      </div>
+                      <div class="task-item completed">
+                        <span class="task-checkbox checked"></span>
+                        <div class="task-info">
+                          <span class="task-title">Photosynthesis card</span>
+                          <span class="task-meta">Studied ✓</span>
+                        </div>
+                        <span class="checkmark">✓</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="feature-description">
+                    <h4>Create, Flip & Study</h4>
+                    <p>Kids add their own flashcards, flip through them to quiz themselves, and delete ones they've mastered. Simple, satisfying, and effective.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab 3: Timer & Focus -->
+              <div class="tab-content progress-content">
+                <div class="demo-visual">
+                  <div class="progress-mockup">
+                    <div class="progress-header">
+                      <h3>Study Timer</h3>
+                      <span class="semester-indicator">Pomodoro Mode 🍅</span>
+                    </div>
+                    <div class="progress-stats">
+                      <div class="stat-card">
+                        <div class="stat-number">25:00</div>
+                        <div class="stat-label">Focus Session</div>
+                        <div class="stat-bar"><div class="stat-fill" style="width: 60%;"></div></div>
+                      </div>
+                      <div class="stat-card">
+                        <div class="stat-number">5:00</div>
+                        <div class="stat-label">Break Time</div>
+                        <div class="stat-trend positive">↑ Stay on track!</div>
+                      </div>
+                      <div class="stat-card">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Sessions Completed Today</div>
+                        <div class="course-dots">
+                          <span class="dot success"></span>
+                          <span class="dot success"></span>
+                          <span class="dot success"></span>
+                          <span class="dot warning"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="feature-description">
+                    <h4>Built-In Study Timer</h4>
+                    <p>A Pomodoro-style timer helps kids build healthy study habits — work for 25 minutes, then take a 5-minute game break, all without leaving the app.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Gallery Slider -->
+      <section class="gallery-section">
+        <div class="container">
+          <h2 class="section-title">Students Who Study Smart</h2>
+          <p class="section-subtitle">The way kids learn is rapidly changing — we're here for it</p>
+          <div class="slider">
+            <div class="slide" id="slide1">
+              <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=900&h=500&fit=crop" alt="Student studying with organized notes">
+            </div>
+            <div class="slide" id="slide2">
+              <img src="https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=900&h=500&fit=crop" alt="Digital planner and schedule">
+            </div>
+            <div class="slide" id="slide3">
+              <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&h=500&fit=crop" alt="Productive study workspace">
+            </div>
+            <div class="slide" id="slide4">
+              <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=900&h=500&fit=crop" alt="Student achievement and success">
+            </div>
+
+            <a href="#slide4" class="slider-nav prev">&#10094;</a>
+            <a href="#slide1" class="slider-nav prev">&#10094;</a>
+            <a href="#slide2" class="slider-nav prev">&#10094;</a>
+            <a href="#slide3" class="slider-nav prev">&#10094;</a>
+
+            <a href="#slide2" class="slider-nav next">&#10095;</a>
+            <a href="#slide3" class="slider-nav next">&#10095;</a>
+            <a href="#slide4" class="slider-nav next">&#10095;</a>
+            <a href="#slide1" class="slider-nav next">&#10095;</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features Grid -->
+      <section class="features">
+        <div class="container">
+          <h2 class="section-title">Why First Digital Backpack?</h2>
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon">📁</div>
+              <h3>Folders & Notebooks</h3>
+              <p>Organize notes by subject, just like a real backpack. Create, open, and delete folders and notebooks with ease.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🃏</div>
+              <h3>Flashcards</h3>
+              <p>Make and study flashcards. Flip through them to quiz yourself and delete the ones you've already mastered.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">⏱️</div>
+              <h3>Study Timer</h3>
+              <p>A built-in Pomodoro timer helps kids focus on studying, then signals when it's time for a well-earned break.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🎮</div>
+              <h3>Break Games</h3>
+              <p>Educational games built right in so kids can recharge during breaks without ever leaving the app.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🎵</div>
+              <h3>Lo-Fi Music Player</h3>
+              <p>A calming lo-fi music player powered by the YouTube Data API keeps kids in the zone while they study.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">✅</div>
+              <h3>To-Do List</h3>
+              <p>A simple, satisfying task list helps kids track assignments and feel accomplished as they check things off.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Testimonials / Differentiators -->
+      <section class="testimonials-section">
+        <div class="container">
+          <h2 class="section-title">How Are We Different?</h2>
+          <div class="testimonials-grid">
+            <div class="testimonial-card">
+              <div class="quote-icon">✦</div>
+              <p class="testimonial-text">Unlike GoodNotes, Quizlet, or Google Docs, First Digital Backpack is built specifically for kids — not adapted for them. Everything is sized, paced, and designed for ages 6 to 14.</p>
+              <div class="testimonial-author">
+                <div class="author-avatar">🎒</div>
+                <div class="author-info">
+                  <div class="author-name">Made for Kids</div>
+                  <div class="author-school">Not a watered-down adult app</div>
+                </div>
+              </div>
+            </div>
+            <div class="testimonial-card">
+              <div class="quote-icon">✦</div>
+              <p class="testimonial-text">No ads. No subscription. No overwhelming menus. Other apps have dozens of options that can confuse young learners. We keep it simple so kids stay focused and don't lose interest.</p>
+              <div class="testimonial-author">
+                <div class="author-avatar">🚫</div>
+                <div class="author-info">
+                  <div class="author-name">No Ads, No Fees</div>
+                  <div class="author-school">Free and distraction-free</div>
+                </div>
+              </div>
+            </div>
+            <div class="testimonial-card">
+              <div class="quote-icon">✦</div>
+              <p class="testimonial-text">76% of students say technology makes learning more engaging. We embrace that — keeping everything in one tab so kids study, play, and listen to music without ever losing focus.</p>
+              <div class="testimonial-author">
+                <div class="author-avatar">📊</div>
+                <div class="author-info">
+                  <div class="author-name">Backed by Research</div>
+                  <div class="author-school">EdWeek Teacher Survey, 2023</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA Section -->
+      <section class="cta-section">
+        <div class="container">
+          <div class="cta-content">
+            <h2>Ready to Pack Your Digital Backpack?</h2>
+            <p>Built by students, for students. No ads, no fees — just a great place to learn.</p>
+            <div class="cta-buttons-bottom">
+              <a href="accountcreate.html" class="btn btn-signup btn-large">Start Free Today</a>
+              <p class="cta-note">No credit card required • Free forever • Made for ages 6–14</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- end #page-home -->
+
+    <!-- ========== TIMER PAGE ========== -->
+    <div id="page-timer" class="page">
+      <div class="inner-page-content">
+        <p class="page-title">⏱️ Timer</p>
+        <p class="page-subtitle">Your study timer will go here.</p>
+        <div class="empty-state">
+          <div class="empty-icon">⏱️</div>
+          <h2>Coming Soon!</h2>
+          <p>The study timer feature is on its way. Set focused study sessions and take timed breaks.</p>
+        </div>
+      </div>
     </div>
 
-    <!-- empty state shown when there are no folders yet -->
-    <div class="empty-state">
-      <div class="empty-icon">📂</div>
-      <h2>No folders yet!</h2>
-      <p>Tap <strong>New</strong> to create your first folder and start organizing your study materials.</p>
-      <a href="#" class="btn-add">
-        <span>✨</span> Create Something New
-      </a>
+    <!-- ========== GAMES PAGE ========== -->
+    <div id="page-games" class="page">
+      <div class="inner-page-content">
+        <p class="page-title">🎮 Games</p>
+        <p class="page-subtitle">Educational games will show up here.</p>
+        <div class="empty-state">
+          <div class="empty-icon">🎮</div>
+          <h2>Coming Soon!</h2>
+          <p>Fun educational games to make learning more engaging are on their way.</p>
+        </div>
+      </div>
     </div>
+
+    <!-- ========== MUSIC PAGE ========== -->
+    <div id="page-music" class="page">
+      <div class="inner-page-content">
+        <p class="page-title">🎵 Music</p>
+        <p class="page-subtitle">Study playlists and music will go here.</p>
+        <div class="empty-state">
+          <div class="empty-icon">🎵</div>
+          <h2>Coming Soon!</h2>
+          <p>Curated study playlists and focus music to boost your productivity.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== TO DO PAGE ========== -->
+    <div id="page-todo" class="page">
+      <div class="inner-page-content">
+        <p class="page-title">✅ To Do</p>
+        <p class="page-subtitle">Your tasks and assignments will show up here.</p>
+        <div class="empty-state">
+          <div class="empty-icon">✅</div>
+          <h2>No tasks yet!</h2>
+          <p>Tap <strong>New</strong> to add your first task and stay on top of your assignments.</p>
+          <a href="#" class="btn-add btn btn-signup" onclick="toggleNewMenu(event)">
+            <span>✨</span> Add a Task
+          </a>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Footer -->
-  <footer>
-    <p>&copy; 2026 First Digital Backpack</p>
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>🎒 First Digital Backpack</h3>
+          <p>A kid-first digital study tool built for ages 6–14. No ads, no fees, no overwhelm — just learning.</p>
+        </div>
+        <div class="footer-section">
+          <h3>The Team</h3>
+          <ul class="footer-links">
+            <li><a href="#">Yasmina Rashidova — Front End & Lo-Fi Music</a></li>
+            <li><a href="#">Ella Blue Jackson — Flashcards, Notes & Folders</a></li>
+            <li><a href="#">Kehinde Adeoso — Timer, Games & To-Do</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 First Digital Backpack · Group 1 · CSCI 49900 03</p>
+      </div>
+    </div>
   </footer>
 
+  <!-- ========== LOGIN MODAL ========== -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+      <div class="modal-header">
+        <span class="modal-icon">🎒</span>
+        <h2>Welcome Back!</h2>
+        <p>Log in to your Digital Backpack</p>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••">
+        </div>
+        <a href="#" class="forgot-link">Forgot your password?</a>
+        <button class="modal-btn" onclick="handleLogin()">Log In</button>
+        <p class="modal-switch">Don't have an account? <a href="#" onclick="switchModal('loginModal','signupModal')">Sign up free</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SIGNUP MODAL ========== -->
+  <div class="modal-overlay" id="signupModal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('signupModal')">✕</button>
+      <div class="modal-header">
+        <span class="modal-icon">✨</span>
+        <h2>Create Your Backpack</h2>
+        <p>Free forever — no credit card needed</p>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="signupName">Your Name</label>
+          <input type="text" id="signupName" placeholder="e.g. Alex">
+        </div>
+        <div class="form-group">
+          <label for="signupEmail">Email</label>
+          <input type="email" id="signupEmail" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label for="signupPassword">Password</label>
+          <input type="password" id="signupPassword" placeholder="Choose a password">
+        </div>
+        <button class="modal-btn" onclick="handleSignup()">Create Account</button>
+        <p class="modal-switch">Already have an account? <a href="#" onclick="switchModal('signupModal','loginModal')">Log in</a></p>
+      </div>
+    </div>
+  </div>
+
   <script>
-    /* Toggle the New dropdown menu */
+    /* ---- Modals ---- */
+    function openModal(id) {
+      document.getElementById(id).classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    function switchModal(closeId, openId) {
+      closeModal(closeId);
+      setTimeout(() => openModal(openId), 150);
+    }
+
+    // Close modal when clicking the overlay background
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeModal(overlay.id);
+      });
+    });
+
+    // Close modals on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.show').forEach(m => closeModal(m.id));
+      }
+    });
+
+    // Wire all Log In buttons
+    document.querySelectorAll('a.btn-login').forEach(btn => {
+      btn.addEventListener('click', function(e) { e.preventDefault(); openModal('loginModal'); });
+    });
+
+    // Wire all Sign Up / Get Started buttons
+    document.querySelectorAll('a.btn-signup').forEach(btn => {
+      btn.addEventListener('click', function(e) { e.preventDefault(); openModal('signupModal'); });
+    });
+
+    function handleLogin() {
+      const email = document.getElementById('loginEmail').value;
+      if (!email) { alert('Please enter your email.'); return; }
+      closeModal('loginModal');
+      console.log('Login attempt:', email);
+    }
+
+    function handleSignup() {
+      const name = document.getElementById('signupName').value;
+      const email = document.getElementById('signupEmail').value;
+      if (!name || !email) { alert('Please fill in all fields.'); return; }
+      closeModal('signupModal');
+      console.log('Signup:', name, email);
+    }
+
+    
+    function showPage(pageId, linkEl) {
+      // Hide all pages
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      // Show target
+      const target = document.getElementById('page-' + pageId);
+      if (target) target.classList.add('active');
+      // Update nav active state
+      document.querySelectorAll('.toolbar a').forEach(a => a.classList.remove('active'));
+      if (linkEl) linkEl.classList.add('active');
+      // Prevent default link behavior
+      return false;
+    }
+
+    // Override all toolbar links to use routing
+    document.querySelectorAll('.toolbar nav > a').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+      });
+    });
+
+    /* ---- New dropdown ---- */
     function toggleNewMenu(e) {
       e.preventDefault();
       e.stopPropagation();
       document.getElementById('newDropdown').classList.toggle('show');
     }
 
-    /* Close dropdown when clicking anywhere else */
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', function(e) {
       const dropdown = document.getElementById('newDropdown');
       if (!e.target.closest('.nav-new-wrapper')) {
         dropdown.classList.remove('show');
       }
     });
 
-    /* Handle dropdown option clicks (placeholder) */
     function handleNew(type) {
       document.getElementById('newDropdown').classList.remove('show');
       console.log('Create new:', type);
