@@ -619,7 +619,7 @@
       document.querySelectorAll('.pomo-btn').forEach(b => b.classList.remove('active-mode'));
       btnEl.classList.add('active-mode');
 
-      const labels = { 25: '🍅 study time — stay focused!', 5: '☕ short break — chill for a sec', 10: '🌿 long break — you earned it' };
+      const labels = { 25: 'Study Time!', 5: 'Short Break!', 10: 'Long Break!' };
       document.getElementById('pomoLabel').textContent = labels[minutes] || 'timer running';
 
       document.getElementById('pomoPause').disabled = false;
