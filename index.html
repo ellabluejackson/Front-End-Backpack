@@ -356,13 +356,32 @@
     <!-- ========== TIMER PAGE ========== -->
     <div id="page-timer" class="page">
       <div class="inner-page-content">
-        <p class="page-title">⏱️ Timer</p>
-        <p class="page-subtitle">Your study timer will go here.</p>
-        <div class="empty-state">
-          <div class="empty-icon">⏱️</div>
-          <h2>Coming Soon!</h2>
-          <p>The study timer feature is on its way. Set focused study sessions and take timed breaks.</p>
+        <p class="page-title">⏱️ Pomodoro Timer</p>
+        <p class="page-subtitle">Pick a mode and start focusing!</p>
+
+        <div class="pomo-wrapper">
+          <div class="pomo-buttons">
+            <button class="pomo-btn pomo-btn--study" onclick="startTimer(25, this)">
+              🍅 Study (25 min)
+            </button>
+            <button class="pomo-btn pomo-btn--short" onclick="startTimer(5, this)">
+              ☕ Short Break (5 min)
+            </button>
+            <button class="pomo-btn pomo-btn--long" onclick="startTimer(10, this)">
+              🌿 Long Break (10 min)
+            </button>
+          </div>
+
+          <div class="pomo-display" id="pomoDisplay">
+            <span class="pomo-time" id="pomoTime">25:00</span>
+            <div class="pomo-controls">
+              <button class="pomo-ctrl" id="pomoPause" onclick="togglePause()" disabled>⏸️ Pause</button>
+              <button class="pomo-ctrl pomo-ctrl--reset" id="pomoReset" onclick="resetTimer()" disabled>🔄 Reset</button>
+            </div>
+            <p class="pomo-label" id="pomoLabel">pick a mode to begin</p>
+          </div>
         </div>
+
       </div>
     </div>
 
@@ -582,6 +601,75 @@
       document.getElementById('newDropdown').classList.remove('show');
       console.log('Create new:', type);
       // Future: open a creation form for the selected type
+    }
+
+    // pomodoro timer -yr
+    let pomoInterval = null;
+    let pomoSeconds = 0;
+    let pomoPaused = false;
+
+    function startTimer(minutes, btnEl) {
+      // clear any running timer -yr
+      clearInterval(pomoInterval);
+      pomoPaused = false;
+
+      pomoSeconds = minutes * 60;
+
+      // highlight the active mode button -yr
+      document.querySelectorAll('.pomo-btn').forEach(b => b.classList.remove('active-mode'));
+      btnEl.classList.add('active-mode');
+
+      const labels = { 25: '🍅 study time — stay focused!', 5: '☕ short break — chill for a sec', 10: '🌿 long break — you earned it' };
+      document.getElementById('pomoLabel').textContent = labels[minutes] || 'timer running';
+
+      document.getElementById('pomoPause').disabled = false;
+      document.getElementById('pomoReset').disabled = false;
+      document.getElementById('pomoPause').textContent = '⏸️ Pause';
+
+      updateTimerDisplay();
+      pomoInterval = setInterval(tick, 1000);
+    }
+
+    function tick() {
+      if (pomoSeconds <= 0) {
+        clearInterval(pomoInterval);
+        document.getElementById('pomoLabel').textContent = '🎉 time\'s up! nice work';
+        document.getElementById('pomoPause').disabled = true;
+        return;
+      }
+      pomoSeconds--;
+      updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+      const m = String(Math.floor(pomoSeconds / 60)).padStart(2, '0');
+      const s = String(pomoSeconds % 60).padStart(2, '0');
+      document.getElementById('pomoTime').textContent = m + ':' + s;
+    }
+
+    function togglePause() {
+      const btn = document.getElementById('pomoPause');
+      if (pomoPaused) {
+        pomoInterval = setInterval(tick, 1000);
+        btn.textContent = '⏸️ Pause';
+        pomoPaused = false;
+      } else {
+        clearInterval(pomoInterval);
+        btn.textContent = '▶️ Resume';
+        pomoPaused = true;
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(pomoInterval);
+      pomoPaused = false;
+      pomoSeconds = 0;
+      document.getElementById('pomoTime').textContent = '25:00';
+      document.getElementById('pomoLabel').textContent = 'pick a mode to begin';
+      document.getElementById('pomoPause').disabled = true;
+      document.getElementById('pomoReset').disabled = true;
+      document.getElementById('pomoPause').textContent = '⏸️ Pause';
+      document.querySelectorAll('.pomo-btn').forEach(b => b.classList.remove('active-mode'));
     }
   </script>
 
