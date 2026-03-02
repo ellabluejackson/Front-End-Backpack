@@ -671,6 +671,19 @@
       document.getElementById('pomoPause').textContent = '⏸️ Pause';
       document.querySelectorAll('.pomo-btn').forEach(b => b.classList.remove('active-mode'));
     }
+
+    // prevent the slider arrows from auto-scrolling the page
+    // normally clicking a #hash link jumps the browser to that element,
+    // so we intercept it, update the hash silently, and keep the scroll position
+    document.querySelectorAll('.slider-nav').forEach(function(arrow) {
+      arrow.addEventListener('click', function(e) {
+        e.preventDefault();
+        var targetId = this.getAttribute('href').replace('#', '');
+        var scrollPos = window.scrollY;
+        window.location.hash = targetId;
+        window.scrollTo(0, scrollPos);
+      });
+    });
   </script>
 
 </body>
