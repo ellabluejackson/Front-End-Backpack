@@ -28,7 +28,7 @@ body {
 }
 
 /* =====================
-   TOP HEADER
+   top header - fixed at top, always visible while scrolling
    ===================== */
 .top-header {
   background: linear-gradient(135deg, #6C63FF 0%, #a78bfa 100%);
@@ -73,7 +73,7 @@ body {
 }
 
 /* =====================
-   BUTTONS
+   buttons - shared base styles, login/signup variants below
    ===================== */
 .btn {
   padding: 0.75rem 1.5rem;
@@ -113,7 +113,7 @@ body {
 }
 
 /* =====================
-   TOOLBAR / NAVBAR
+   toolbar / nav - sticks just below the fixed header
    ===================== */
 .toolbar {
   background: var(--surface);
@@ -122,7 +122,7 @@ body {
   display: flex;
   justify-content: center;
   position: sticky;
-  top: 64px;
+  top: 80px;
   z-index: 100;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
@@ -239,7 +239,7 @@ body {
 }
 
 /* =====================
-   PAGE SYSTEM
+   page system - only the active page is shown, the rest are hidden
    ===================== */
 .page {
   display: none;
@@ -254,11 +254,11 @@ body {
 
 main {
   flex: 1;
-  padding-top: 64px; /* height of fixed header */
+  padding-top: 80px; /* height of fixed header */
 }
 
 /* =====================
-   INNER PAGES (Timer, Games, etc.)
+   inner pages - timer, games, music, and to-do all share this layout
    ===================== */
 .inner-page-content {
   flex: 1;
@@ -282,7 +282,7 @@ main {
 }
 
 /* =====================
-   EMPTY STATE
+   empty state - shown when a page has no content yet
    ===================== */
 .empty-state {
   display: flex;
@@ -337,7 +337,7 @@ main {
 }
 
 /* =====================
-   HERO
+   hero - the big full-screen intro at the top of the homepage
    ===================== */
 .hero {
   min-height: 100vh;
@@ -388,7 +388,7 @@ main {
 }
 
 /* =====================
-   DEMO SECTION / TABS
+   demo tabs - radio inputs act as tab state, labels do the clicking
    ===================== */
 .demo-section {
   padding: 5rem 2rem;
@@ -703,7 +703,7 @@ main {
 }
 
 /* =====================
-   GALLERY / SLIDER
+   gallery / slider - CSS :target trick switches slides without JS
    ===================== */
 .gallery-section {
   padding: 5rem 2rem;
@@ -772,7 +772,7 @@ main {
 #slide4:target ~ .slider-nav.next:nth-of-type(8) { opacity: 1; pointer-events: auto; }
 
 /* =====================
-   FEATURES
+   features - the 6-card grid explaining what the app does
    ===================== */
 .features {
   padding: 5rem 2rem;
@@ -816,7 +816,7 @@ main {
 }
 
 /* =====================
-   TESTIMONIALS
+   testimonials - used here as differentiator cards, not real reviews
    ===================== */
 .testimonials-section {
   padding: 5rem 2rem;
@@ -867,7 +867,7 @@ main {
 .author-school { font-size: 0.9rem; color: #999; }
 
 /* =====================
-   CTA SECTION
+   CTA section - bottom banner to get people to sign up
    ===================== */
 .cta-section {
   padding: 5rem 2rem;
@@ -900,7 +900,7 @@ main {
 }
 
 /* =====================
-   FOOTER
+   footer - dark bar at the bottom with team info
    ===================== */
 .footer {
   background: #2c3e50;
@@ -945,7 +945,7 @@ main {
 }
 
 /* =====================
-   RESPONSIVE
+   responsive - shrink and restack things for tablets and phones
    ===================== */
 @media (max-width: 968px) {
   .demo-visual { grid-template-columns: 1fr; }
@@ -1000,7 +1000,7 @@ main {
 }
 
 /* =====================
-   POMODORO TIMER
+   pomodoro timer - study/break mode buttons and countdown display
    ===================== */
 .pomo-wrapper {
   display: flex;
@@ -1129,7 +1129,7 @@ main {
 }
 
 /* =====================
-   MODALS
+   modals - login and signup popups with a blurred backdrop
    ===================== */
 .modal-overlay {
   display: none;

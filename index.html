@@ -8,7 +8,7 @@
 </head>
 <body>
 
-  <!-- Top Header (Backpack branding + StudyMax fixed nav style) -->
+  <!-- top header - branding on the left, login/signup on the right -->
   <header class="top-header">
     <div class="nav-container">
       <div class="header-brand">
@@ -22,7 +22,7 @@
     </div>
   </header>
 
-  <!-- Sticky Toolbar Nav (Backpack nav, StudyMax sticky style) -->
+  <!-- sticky nav bar - sits just below the header and stays while scrolling -->
   <div class="toolbar">
     <nav>
       <a href="#home" class="active" onclick="showPage('home', this)">
@@ -61,7 +61,7 @@
 
   <main>
 
-    <!-- ========== HOME PAGE ========== -->
+    <!-- ========== home page ========== -->
     <div id="page-home" class="page active">
 
       <!-- Hero Section -->
@@ -353,7 +353,7 @@
 
     </div><!-- end #page-home -->
 
-    <!-- ========== TIMER PAGE ========== -->
+    <!-- ========== timer page ========== -->
     <div id="page-timer" class="page">
       <div class="inner-page-content">
         <p class="page-title">⏱️ Pomodoro Timer</p>
@@ -385,7 +385,7 @@
       </div>
     </div>
 
-    <!-- ========== GAMES PAGE ========== -->
+    <!-- ========== games page ========== -->
     <div id="page-games" class="page">
       <div class="inner-page-content">
         <p class="page-title">🎮 Games</p>
@@ -398,7 +398,7 @@
       </div>
     </div>
 
-    <!-- ========== MUSIC PAGE ========== -->
+    <!-- ========== music page ========== -->
     <div id="page-music" class="page">
       <div class="inner-page-content">
         <p class="page-title">🎵 Music</p>
@@ -411,7 +411,7 @@
       </div>
     </div>
 
-    <!-- ========== TO DO PAGE ========== -->
+    <!-- ========== to do page ========== -->
     <div id="page-todo" class="page">
       <div class="inner-page-content">
         <p class="page-title">✅ To Do</p>
@@ -453,7 +453,7 @@
     </div>
   </footer>
 
-  <!-- ========== LOGIN MODAL ========== -->
+  <!-- ========== login modal ========== -->
   <div class="modal-overlay" id="loginModal">
     <div class="modal-box">
       <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
@@ -478,7 +478,7 @@
     </div>
   </div>
 
-  <!-- ========== SIGNUP MODAL ========== -->
+  <!-- ========== signup modal ========== -->
   <div class="modal-overlay" id="signupModal">
     <div class="modal-box">
       <button class="modal-close" onclick="closeModal('signupModal')">✕</button>
@@ -507,7 +507,7 @@
   </div>
 
   <script>
-    /* ---- Modals ---- */
+    /* ---- modals ---- */
     function openModal(id) {
       document.getElementById(id).classList.add('show');
       document.body.style.overflow = 'hidden';
@@ -523,26 +523,26 @@
       setTimeout(() => openModal(openId), 150);
     }
 
-    // Close modal when clicking the overlay background
+    // close modal when clicking the dark backdrop behind it
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', function(e) {
         if (e.target === overlay) closeModal(overlay.id);
       });
     });
 
-    // Close modals on Escape key
+    // also close on Escape key
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         document.querySelectorAll('.modal-overlay.show').forEach(m => closeModal(m.id));
       }
     });
 
-    // Wire all Log In buttons
+    // wire up all Log In buttons to open the login modal
     document.querySelectorAll('a.btn-login').forEach(btn => {
       btn.addEventListener('click', function(e) { e.preventDefault(); openModal('loginModal'); });
     });
 
-    // Wire all Sign Up / Get Started buttons
+    // wire up all Sign Up buttons to open the signup modal
     document.querySelectorAll('a.btn-signup').forEach(btn => {
       btn.addEventListener('click', function(e) { e.preventDefault(); openModal('signupModal'); });
     });
@@ -564,26 +564,26 @@
 
     
     function showPage(pageId, linkEl) {
-      // Hide all pages
+      // hide all pages first
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      // Show target
+      // then show just the one that was clicked
       const target = document.getElementById('page-' + pageId);
       if (target) target.classList.add('active');
-      // Update nav active state
+      // update which nav link looks active
       document.querySelectorAll('.toolbar a').forEach(a => a.classList.remove('active'));
       if (linkEl) linkEl.classList.add('active');
-      // Prevent default link behavior
+      // stop the link from navigating
       return false;
     }
 
-    // Override all toolbar links to use routing
+    // stop toolbar links from jumping to a hash - showPage handles routing instead
     document.querySelectorAll('.toolbar nav > a').forEach(link => {
       link.addEventListener('click', function(e) {
         e.preventDefault();
       });
     });
 
-    /* ---- New dropdown ---- */
+    /* ---- "New" dropdown ---- */
     function toggleNewMenu(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -600,22 +600,22 @@
     function handleNew(type) {
       document.getElementById('newDropdown').classList.remove('show');
       console.log('Create new:', type);
-      // Future: open a creation form for the selected type
+      // TODO: open a creation form for the selected type
     }
 
-    // pomodoro timer -yr
+    // pomodoro timer
     let pomoInterval = null;
     let pomoSeconds = 0;
     let pomoPaused = false;
 
     function startTimer(minutes, btnEl) {
-      // clear any running timer -yr
+      // stop any timer already running before starting a new one
       clearInterval(pomoInterval);
       pomoPaused = false;
 
       pomoSeconds = minutes * 60;
 
-      // highlight the active mode button -yr
+      // highlight whichever mode button was clicked
       document.querySelectorAll('.pomo-btn').forEach(b => b.classList.remove('active-mode'));
       btnEl.classList.add('active-mode');
 
