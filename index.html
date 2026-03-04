@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Digital Backpack</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="lofi-api.js" defer></script>
 </head>
 <body>
 
@@ -402,12 +403,9 @@
     <div id="page-music" class="page">
       <div class="inner-page-content">
         <p class="page-title">🎵 Music</p>
-        <p class="page-subtitle">Study playlists and music will go here.</p>
-        <div class="empty-state">
-          <div class="empty-icon">🎵</div>
-          <h2>Coming Soon!</h2>
-          <p>Curated study playlists and focus music to boost your productivity.</p>
-        </div>
+        <p class="page-subtitle">Lo-fi beats to study and relax to.</p>
+        <!-- hidden yt player lives here, ui coming later -yr -->
+        <div id="lofi-yt-player" style="position:absolute;width:0;height:0;overflow:hidden;"></div>
       </div>
     </div>
 
