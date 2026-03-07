@@ -404,8 +404,32 @@
       <div class="inner-page-content">
         <p class="page-title">🎵 Music</p>
         <p class="page-subtitle">Lo-fi beats to study and relax to.</p>
-        <!-- hidden yt player lives here, ui coming later -yr -->
+
+        <!-- hidden yt iframe lives here -yr -->
         <div id="lofi-yt-player" style="position:absolute;width:0;height:0;overflow:hidden;"></div>
+
+        <div class="lofi-player">
+          <!-- now playing card -->
+          <div class="lofi-now-playing">
+            <div class="lofi-vinyl" id="lofiVinyl">🎵</div>
+            <div class="lofi-track-info">
+              <p class="lofi-track-title" id="lofiTrackTitle">Lofi Track 1</p>
+              <p class="lofi-track-sub">lo-fi · chill · focus</p>
+            </div>
+          </div>
+
+          <!-- playback controls -->
+          <div class="lofi-controls">
+            <button class="lofi-ctrl" onclick="handleShuffle()" title="Shuffle">🔀</button>
+            <button class="lofi-ctrl" onclick="handlePrev()" title="Previous">⏮️</button>
+            <button class="lofi-ctrl lofi-ctrl--play" id="lofiPlayBtn" onclick="handlePlayPause()" title="Play">▶️</button>
+            <button class="lofi-ctrl" onclick="handleNext()" title="Next">⏭️</button>
+          </div>
+
+          <!-- track list -->
+          <div class="lofi-tracklist" id="lofiTracklist"></div>
+        </div>
+
       </div>
     </div>
 

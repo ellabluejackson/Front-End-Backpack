@@ -54,17 +54,17 @@ function initLofiPlayer() {
 }
 
 function onLofiPlayerReady() {
-  // player is ready, ui can enable controls whenever it's built -yr
   console.log('lofi player ready — track:', lofiPlaylist[currentTrack].title);
+  renderTracklist();
+  updateLofiUI();
 }
 
 function onLofiStateChange(event) {
-  // when a video ends, go to the next track -yr
   if (event.data === YT.PlayerState.ENDED) {
     playNextTrack();
   }
-  // keep our state in sync -yr
   isLofiPlaying = event.data === YT.PlayerState.PLAYING;
+  updateLofiUI();
 }
 
 // playback controls — the ui will call these -yr
@@ -105,11 +105,11 @@ function loadAndPlay(index) {
   if (!lofiPlayer) return;
   lofiPlayer.loadVideoById(lofiPlaylist[index].id);
   isLofiPlaying = true;
-  console.log('now playing:', lofiPlaylist[index].title);
+  updateLofiUI();
 }
 
 function shufflePlaylist() {
-  // fisher-yates shuffle -yr
+  // shuffle -yr
   for (let i = lofiPlaylist.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [lofiPlaylist[i], lofiPlaylist[j]] = [lofiPlaylist[j], lofiPlaylist[i]];
@@ -127,6 +127,65 @@ function getCurrentTrackInfo() {
   };
 }
 
-// kick things off when the dom is ready -yr
+// -- ui stuff -yr --
+
+// build the tracklist rows once -yr
+function renderTracklist() {
+  const list = document.getElementById('lofiTracklist');
+  if (!list) return;
+  list.innerHTML = '';
+  lofiPlaylist.forEach(function(track, i) {
+    const row = document.createElement('div');
+    row.className = 'lofi-track-row' + (i === currentTrack ? ' active' : '');
+    row.setAttribute('data-index', i);
+    row.innerHTML =
+      '<span class="lofi-track-num">' + (i + 1) + '</span>' +
+      '<span class="lofi-track-name">' + track.title + '</span>' +
+      '<span class="lofi-track-eq">♪</span>';
+    row.addEventListener('click', function() {
+      playTrackByIndex(i);
+    });
+    list.appendChild(row);
+  });
+}
+
+// keep the ui in sync with player state -yr
+function updateLofiUI() {
+  var titleEl = document.getElementById('lofiTrackTitle');
+  var playBtn = document.getElementById('lofiPlayBtn');
+  var vinyl   = document.getElementById('lofiVinyl');
+  var rows    = document.querySelectorAll('.lofi-track-row');
+
+  if (titleEl) titleEl.textContent = lofiPlaylist[currentTrack].title;
+  if (playBtn) playBtn.textContent = isLofiPlaying ? '⏸️' : '▶️';
+  if (vinyl) {
+    isLofiPlaying ? vinyl.classList.add('spinning') : vinyl.classList.remove('spinning');
+  }
+
+  rows.forEach(function(row, i) {
+    row.classList.toggle('active', i === currentTrack);
+  });
+}
+
+// button handlers called from the html -yr
+function handlePlayPause() {
+  toggleLofi();
+}
+
+function handleNext() {
+  playNextTrack();
+}
+
+function handlePrev() {
+  playPrevTrack();
+}
+
+function handleShuffle() {
+  shufflePlaylist();
+  renderTracklist();
+  loadAndPlay(0);
+}
+
+// start when the dom is ready -yr
 document.addEventListener('DOMContentLoaded', loadYTAPI);
 
