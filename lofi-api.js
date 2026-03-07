@@ -4,13 +4,13 @@ const lofiPlaylist = [
   { id: '8JqTrT1MYrQ', title: 'Lofi Track 1' },
   { id: 'oZH-BcCb_7Q', title: 'Lofi Track 2' },
   { id: 'DsCJRBpfNtA', title: 'Lofi Track 3' },
-  { id: 'n61ULEU7CO0', title: 'Lofi Track 4' },
-  { id: '84u41t5v4j4', title: 'Lofi Track 5' },
-  { id: 'yeBdCjMwsU8', title: 'Lofi Track 6' },
-  { id: '-XTRvGmtkHg', title: 'Lofi Track 7' },
-  { id: 'elZbdo-i8yE', title: 'Lofi Track 8' },
-  { id: 'Z1oUGthAzeo', title: 'Lofi Track 9' },
-  { id: 'F_RPm8eSU-g', title: 'Lofi Track 10' }
+  { id: 'vWqmPi6yf9I', title: 'Lofi Track 4' },
+  { id: 'D1UNXgJTD7Y', title: 'Lofi Track 5' },
+  { id: '7_xJRJ0Z-pA', title: 'Lofi Track 6' },
+  { id: 'RCWmw8T-lag', title: 'Lofi Track 7' },
+  { id: 'nyjg1V150BY', title: 'Lofi Track 8' },
+  { id: 'WuS8mUssmKA', title: 'Lofi Track 9' },
+  { id: 'EhCTDvW55fU', title: 'Lofi Track 10' }
 ];
 
 let lofiPlayer = null;
