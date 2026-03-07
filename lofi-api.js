@@ -6,7 +6,7 @@ const lofiPlaylist = [
   { id: 'DsCJRBpfNtA', title: 'Lofi Track 3' },
   { id: 'n61ULEU7CO0', title: 'Lofi Track 4' },
   { id: '84u41t5v4j4', title: 'Lofi Track 5' },
-  { id: 'f7Dfv4NSEjg', title: 'Lofi Track 6' },
+  { id: 'yeBdCjMwsU8', title: 'Lofi Track 6' },
   { id: '-XTRvGmtkHg', title: 'Lofi Track 7' },
   { id: 'elZbdo-i8yE', title: 'Lofi Track 8' },
   { id: 'Z1oUGthAzeo', title: 'Lofi Track 9' },
