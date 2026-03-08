@@ -434,18 +434,50 @@
     </div>
 
     <!-- ========== to do page ========== -->
+    <!-- CHANGED: replaced empty-state + btn-signup button with actual todo UI -->
     <div id="page-todo" class="page">
       <div class="inner-page-content">
         <p class="page-title">✅ To Do</p>
         <p class="page-subtitle">Your tasks and assignments will show up here.</p>
-        <div class="empty-state">
-          <div class="empty-icon">✅</div>
-          <h2>No tasks yet!</h2>
-          <p>Tap <strong>New</strong> to add your first task and stay on top of your assignments.</p>
-          <a href="#" class="btn-add btn btn-signup" onclick="toggleNewMenu(event)">
-            <span>✨</span> Add a Task
-          </a>
+
+        <!-- Add Task -->
+        <div class="todo-add-section">
+          <h3 class="todo-section-label">➕ Add a Task</h3>
+          <div class="todo-input-row">
+            <input
+              type="text"
+              id="todoInput"
+              class="todo-input"
+              placeholder="e.g. Study for math quiz..."
+              maxlength="120"
+              onkeydown="if(event.key==='Enter') addTodoTask()"
+            >
+            <button class="todo-add-btn" onclick="addTodoTask()">Add Task</button>
+          </div>
         </div>
+
+        <!-- All Tasks -->
+        <div class="todo-section">
+          <div class="todo-section-header">
+            <h3 class="todo-section-label">📋 All Tasks</h3>
+            <span class="todo-count" id="todoActiveCount">0 active</span>
+          </div>
+          <div id="todoAllList" class="todo-list">
+            <div class="todo-empty-msg" id="todoEmptyMsg">No tasks yet — add one above! 🎒</div>
+          </div>
+        </div>
+
+        <!-- Completed -->
+        <div class="todo-section">
+          <div class="todo-section-header">
+            <h3 class="todo-section-label">🏆 Completed</h3>
+            <span class="todo-count todo-count--done" id="todoDoneCount">0 done</span>
+          </div>
+          <div id="todoCompletedList" class="todo-list todo-list--completed">
+            <div class="todo-empty-msg" id="todoCompletedEmptyMsg">Nothing finished yet — you got this! 💪</div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -706,6 +738,88 @@
         window.scrollTo(0, scrollPos);
       });
     });
+
+    /* ============================
+       TO-DO LIST
+       ============================ */
+    let todos = [];
+    let nextId = 1;
+
+    function addTodoTask() {
+      const input = document.getElementById('todoInput');
+      const text = input.value.trim();
+      if (!text) {
+        input.focus();
+        input.classList.add('todo-input--error');
+        setTimeout(() => input.classList.remove('todo-input--error'), 600);
+        return;
+      }
+      todos.push({ id: nextId++, text, done: false });
+      input.value = '';
+      input.focus();
+      renderTodos();
+    }
+
+    function toggleTodo(id) {
+      const todo = todos.find(t => t.id === id);
+      if (todo) { todo.done = !todo.done; renderTodos(); }
+    }
+
+    function deleteTodo(id) {
+      todos = todos.filter(t => t.id !== id);
+      renderTodos();
+    }
+
+    function renderTodos() {
+      const allList       = document.getElementById('todoAllList');
+      const completedList = document.getElementById('todoCompletedList');
+      const emptyMsg      = document.getElementById('todoEmptyMsg');
+      const compEmptyMsg  = document.getElementById('todoCompletedEmptyMsg');
+      const activeCount   = document.getElementById('todoActiveCount');
+      const doneCount     = document.getElementById('todoDoneCount');
+
+      const active    = todos.filter(t => !t.done);
+      const completed = todos.filter(t => t.done);
+
+      activeCount.textContent = active.length + ' active';
+      doneCount.textContent   = completed.length + ' done';
+
+      allList.querySelectorAll('.todo-item').forEach(el => el.remove());
+      emptyMsg.style.display = todos.length === 0 ? '' : 'none';
+      [...active, ...completed].forEach(todo => allList.appendChild(buildTodoItem(todo)));
+
+      completedList.querySelectorAll('.todo-item').forEach(el => el.remove());
+      compEmptyMsg.style.display = completed.length === 0 ? '' : 'none';
+      completed.forEach(todo => completedList.appendChild(buildTodoItem(todo)));
+    }
+
+    function buildTodoItem(todo) {
+      const row = document.createElement('div');
+      row.className = 'todo-item' + (todo.done ? ' todo-item--done' : '');
+
+      const cb = document.createElement('button');
+      cb.className = 'todo-checkbox' + (todo.done ? ' todo-checkbox--checked' : '');
+      cb.setAttribute('aria-label', todo.done ? 'Mark incomplete' : 'Mark complete');
+      cb.innerHTML = todo.done ? '✓' : '';
+      cb.onclick = () => toggleTodo(todo.id);
+
+      const label = document.createElement('span');
+      label.className = 'todo-text';
+      label.textContent = todo.text;
+
+      const del = document.createElement('button');
+      del.className = 'todo-delete-btn';
+      del.setAttribute('aria-label', 'Delete task');
+      del.innerHTML = '🗑️';
+      del.onclick = () => deleteTodo(todo.id);
+
+      row.appendChild(cb);
+      row.appendChild(label);
+      row.appendChild(del);
+      return row;
+    }
+
+    renderTodos();
   </script>
 
 </body>
