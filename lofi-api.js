@@ -54,7 +54,7 @@ function initLofiPlayer() {
 }
 
 function onLofiPlayerReady() {
-  console.log('lofi player ready — track:', lofiPlaylist[currentTrack].title);
+  console.log('lofi player ready, track:', lofiPlaylist[currentTrack].title);
   renderTracklist();
   updateLofiUI();
 }
@@ -67,7 +67,7 @@ function onLofiStateChange(event) {
   updateLofiUI();
 }
 
-// playback controls — the ui will call these -yr
+// playback controls (the ui will call these) -yr
 
 function playLofi() {
   if (!lofiPlayer) return;

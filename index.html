@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Digital Backpack</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="api.js" defer></script>
   <script src="lofi-api.js" defer></script>
   <script src="backpack.js" defer></script>
 </head>
 <body>
 
-  <!-- top header - branding on the left, login/signup on the right -->
+  <!-- top header - branding + auth -->
   <header class="top-header">
     <div class="nav-container">
       <div class="header-brand">
@@ -31,7 +32,7 @@
         <span class="nav-icon">🏠</span>
         Home
       </a>
-      <a href="#" onclick="showPage('backpack', this)">
+      <a href="#" id="nav-backpack" onclick="showPage('backpack', this)">
         <span class="nav-icon">🎒</span>
         Backpack
       </a>
@@ -74,13 +75,13 @@
       <section class="hero">
         <div class="hero-content">
           <h1>🎒 First Digital Backpack</h1>
-          <p class="tagline">A Kid's First Introduction to Digital Note Taking</p>
+          <p class="tagline">Notes, flashcards, and a timer. All in one place.</p>
           <p class="hero-description">
-            Designed for ages 6 to 14, First Digital Backpack keeps kids focused and learning with no ads, no subscription fees, and no overwhelm. Create folders, notebooks, and flashcards. Set a study timer, take a game break, and listen to lo-fi music, all without switching tabs.
+            No ads, no subscription. Make folders for your subjects, write in notebooks, study with flashcards. There’s a timer when you need to focus and lo-fi when you want to chill. Made for kids who like to keep things simple.
           </p>
           <div class="cta-buttons">
-            <a href="accountcreate.html" class="btn btn-signup btn-large">Get Started Free</a>
-            <a href="#" class="btn btn-login btn-large">Log In</a>
+            <a href="accountcreate.html" class="btn btn-signup btn-large">Get started</a>
+            <a href="#" class="btn btn-login btn-large">Log in</a>
           </div>
         </div>
       </section>
@@ -88,8 +89,8 @@
       <!-- Demo Tabs Section -->
       <section class="demo-section">
         <div class="container">
-          <h2 class="section-title">Everything Kids Need to Study</h2>
-          <p class="section-subtitle">One backpack. No distractions. Built for ages 6 to 14.</p>
+          <h2 class="section-title">What’s in the backpack</h2>
+          <p class="section-subtitle">Folders, notes, cards, and a timer. That’s it.</p>
 
           <div class="demo-tabs">
             <input type="radio" name="demo-tab" id="tab-schedule" checked>
@@ -140,8 +141,8 @@
                     </div>
                   </div>
                   <div class="feature-description">
-                    <h4>Organize by Subject</h4>
-                    <p>Kids create folders for each subject and fill them with notebooks and flashcard decks, just like a real backpack but digital and always organized.</p>
+                    <h4>Folders & notes</h4>
+                    <p>One folder per subject. Put notebooks and flashcard sets inside. Same idea as a real backpack, just on the screen.</p>
                   </div>
                 </div>
               </div>
@@ -182,8 +183,8 @@
                     </div>
                   </div>
                   <div class="feature-description">
-                    <h4>Create, Flip & Study</h4>
-                    <p>Kids add their own flashcards, flip through them to quiz themselves, and delete ones they've mastered. Simple, satisfying, and effective.</p>
+                    <h4>Flashcards</h4>
+                    <p>Add your own cards, flip to check the answer, delete the ones you know. No fancy algorithm, just you and the material.</p>
                   </div>
                 </div>
               </div>
@@ -220,8 +221,8 @@
                     </div>
                   </div>
                   <div class="feature-description">
-                    <h4>Built-In Study Timer</h4>
-                    <p>A Pomodoro-style timer helps kids build healthy study habits. Work for 25 minutes, then take a 5-minute game break, all without leaving the app.</p>
+                    <h4>Timer</h4>
+                    <p>25 minutes of focus, then a short break. Pick study or break mode and go. No extra apps to open.</p>
                   </div>
                 </div>
               </div>
@@ -233,8 +234,8 @@
       <!-- Gallery Slider -->
       <section class="gallery-section">
         <div class="container">
-          <h2 class="section-title">Students Who Study Smart</h2>
-          <p class="section-subtitle">The way kids learn is rapidly changing and we are here for it</p>
+          <h2 class="section-title">Study your way</h2>
+          <p class="section-subtitle">One place for your stuff. No clutter.</p>
           <div class="slider">
             <div class="slide" id="slide1">
               <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=900&h=500&fit=crop" alt="Student studying with organized notes">
@@ -265,37 +266,37 @@
       <!-- Features Grid -->
       <section class="features">
         <div class="container">
-          <h2 class="section-title">Why First Digital Backpack?</h2>
+          <h2 class="section-title">What you get</h2>
           <div class="features-grid">
             <div class="feature-card">
               <div class="feature-icon">📁</div>
-              <h3>Folders & Notebooks</h3>
-              <p>Organize notes by subject, just like a real backpack. Create, open, and delete folders and notebooks with ease.</p>
+              <h3>Folders & notebooks</h3>
+              <p>One folder per subject. Notes live inside. Create and delete as you go.</p>
             </div>
             <div class="feature-card">
               <div class="feature-icon">🃏</div>
               <h3>Flashcards</h3>
-              <p>Make and study flashcards. Flip through them to quiz yourself and delete the ones you've already mastered.</p>
+              <p>Write your own, flip to study, remove the ones you know. Nothing fancy.</p>
             </div>
             <div class="feature-card">
               <div class="feature-icon">⏱️</div>
-              <h3>Study Timer</h3>
-              <p>A built-in Pomodoro timer helps kids focus on studying, then signals when it's time for a well-earned break.</p>
+              <h3>Timer</h3>
+              <p>Set a focus block or a break. The timer tells you when to switch.</p>
             </div>
             <div class="feature-card">
               <div class="feature-icon">🎮</div>
-              <h3>Break Games</h3>
-              <p>Educational games built right in so kids can recharge during breaks without ever leaving the app.</p>
+              <h3>Games</h3>
+              <p>Short games for when you need a break. Stay on the same tab.</p>
             </div>
             <div class="feature-card">
               <div class="feature-icon">🎵</div>
-              <h3>Lo-Fi Music Player</h3>
-              <p>A calming lo-fi music player powered by the YouTube Data API keeps kids in the zone while they study.</p>
+              <h3>Lo-fi</h3>
+              <p>Background music while you work. No account, no playlist to build.</p>
             </div>
             <div class="feature-card">
               <div class="feature-icon">✅</div>
-              <h3>To-Do List</h3>
-              <p>A simple, satisfying task list helps kids track assignments and feel accomplished as they check things off.</p>
+              <h3>To-do</h3>
+              <p>List your tasks, check them off. Keeps homework from slipping.</p>
             </div>
           </div>
         </div>
@@ -304,38 +305,38 @@
       <!-- Testimonials / Differentiators -->
       <section class="testimonials-section">
         <div class="container">
-          <h2 class="section-title">How Are We Different?</h2>
+          <h2 class="section-title">Why this one</h2>
           <div class="testimonials-grid">
             <div class="testimonial-card">
               <div class="quote-icon">✦</div>
-              <p class="testimonial-text">Unlike GoodNotes, Quizlet, or Google Docs, First Digital Backpack is built specifically for kids and not just adapted for them. Everything is sized, paced, and designed for ages 6 to 14.</p>
+              <p class="testimonial-text">Built for kids from the start: bigger tap targets, fewer menus, no “pro” upsells. Not an adult app with the hard parts hidden.</p>
               <div class="testimonial-author">
                 <div class="author-avatar">🎒</div>
                 <div class="author-info">
-                  <div class="author-name">Made for Kids</div>
-                  <div class="author-school">Not a watered-down adult app</div>
+                  <div class="author-name">Kid-sized</div>
+                  <div class="author-school">Not a stripped-down grown-up tool</div>
                 </div>
               </div>
             </div>
             <div class="testimonial-card">
               <div class="quote-icon">✦</div>
-              <p class="testimonial-text">No ads. No subscription. No overwhelming menus. Other apps have dozens of options that can confuse young learners. We keep it simple so kids stay focused and don't lose interest.</p>
+              <p class="testimonial-text">No ads, no paywall. We didn’t add a million options, just enough so you can find your notes and actually use them.</p>
               <div class="testimonial-author">
                 <div class="author-avatar">🚫</div>
                 <div class="author-info">
-                  <div class="author-name">No Ads, No Fees</div>
-                  <div class="author-school">Free and distraction-free</div>
+                  <div class="author-name">Free, no tricks</div>
+                  <div class="author-school">No pop-ups or upgrade nags</div>
                 </div>
               </div>
             </div>
             <div class="testimonial-card">
               <div class="quote-icon">✦</div>
-              <p class="testimonial-text">76% of students say technology makes learning more engaging. We embrace that by keeping everything in one tab so kids can study, play, and listen to music without ever losing focus.</p>
+              <p class="testimonial-text">Notes, cards, timer, and music in one tab. Less switching, less getting lost. Open the backpack and you’re set.</p>
               <div class="testimonial-author">
                 <div class="author-avatar">📊</div>
                 <div class="author-info">
-                  <div class="author-name">Backed by Research</div>
-                  <div class="author-school">EdWeek Teacher Survey, 2023</div>
+                  <div class="author-name">All in one place</div>
+                  <div class="author-school">No extra tabs or logins</div>
                 </div>
               </div>
             </div>
@@ -347,11 +348,11 @@
       <section class="cta-section">
         <div class="container">
           <div class="cta-content">
-            <h2>Ready to Pack Your Digital Backpack?</h2>
-            <p>Built by students, for students. No ads, no fees and just a great place to learn.</p>
+            <h2>Try it</h2>
+            <p>Made by students for other students. Free, no card, no catch.</p>
             <div class="cta-buttons-bottom">
-              <a href="accountcreate.html" class="btn btn-signup btn-large">Start Free Today</a>
-              <p class="cta-note">No credit card required • Free forever • Made for ages 6 to 14</p>
+              <a href="accountcreate.html" class="btn btn-signup btn-large">Create account</a>
+              <p class="cta-note">No credit card · Free · For kids who like to keep it simple</p>
             </div>
           </div>
         </div>
@@ -363,7 +364,7 @@
     <div id="page-backpack" class="page">
       <div class="inner-page-content">
         <p class="page-title">🎒 Backpack</p>
-        <p class="page-subtitle">Your folders, notebooks, and flashcards.</p>
+        <p class="page-subtitle">Folders, notebooks, and flashcard sets.</p>
         <div id="bpApp"></div>
       </div>
     </div>
@@ -372,7 +373,7 @@
     <div id="page-timer" class="page">
       <div class="inner-page-content">
         <p class="page-title">⏱️ Pomodoro Timer</p>
-        <p class="page-subtitle">Pick a mode and start focusing!</p>
+        <p class="page-subtitle">Focus block or break, you pick.</p>
 
         <div class="pomo-wrapper">
           <div class="pomo-buttons">
@@ -404,11 +405,11 @@
     <div id="page-games" class="page">
       <div class="inner-page-content">
         <p class="page-title">🎮 Games</p>
-        <p class="page-subtitle">Educational games will show up here.</p>
+        <p class="page-subtitle">Short games for when you need a break.</p>
         <div class="empty-state">
           <div class="empty-icon">🎮</div>
-          <h2>Coming Soon!</h2>
-          <p>Fun educational games to make learning more engaging are on their way.</p>
+          <h2>Coming soon</h2>
+          <p>Games are still in the works. Check back later.</p>
         </div>
       </div>
     </div>
@@ -417,7 +418,7 @@
     <div id="page-music" class="page">
       <div class="inner-page-content">
         <p class="page-title">🎵 Music</p>
-        <p class="page-subtitle">Lo-fi beats to study and relax to.</p>
+        <p class="page-subtitle">Background music while you work.</p>
 
         <!-- hidden yt iframe lives here -yr -->
         <div id="lofi-yt-player" style="position:absolute;width:0;height:0;overflow:hidden;"></div>
@@ -428,7 +429,7 @@
             <div class="lofi-vinyl" id="lofiVinyl">🎵</div>
             <div class="lofi-track-info">
               <p class="lofi-track-title" id="lofiTrackTitle">Lofi Track 1</p>
-              <p class="lofi-track-sub">Relax, focus, and study to the beat.</p>
+              <p class="lofi-track-sub">Press play and keep going.</p>
             </div>
           </div>
 
@@ -452,11 +453,11 @@
     <div id="page-todo" class="page">
       <div class="inner-page-content">
         <p class="page-title">✅ To Do</p>
-        <p class="page-subtitle">Keep track of your tasks here!</p>
+        <p class="page-subtitle">Add tasks and check them off.</p>
 
         <!-- Add Task -->
         <div class="todo-add-section">
-          <h3 class="todo-section-label">➕ Add a Task</h3>
+          <h3 class="todo-section-label">Add a task</h3>
           <div class="todo-input-row">
             <input
               type="text"
@@ -477,7 +478,7 @@
             <span class="todo-count" id="todoActiveCount">0 active</span>
           </div>
           <div id="todoAllList" class="todo-list">
-            <div class="todo-empty-msg" id="todoEmptyMsg">No tasks yet, add one above! 🎒</div>
+            <div class="todo-empty-msg" id="todoEmptyMsg">No tasks yet. Add one above.</div>
           </div>
         </div>
 
@@ -488,7 +489,7 @@
             <span class="todo-count todo-count--done" id="todoDoneCount">0 done</span>
           </div>
           <div id="todoCompletedList" class="todo-list todo-list--completed">
-            <div class="todo-empty-msg" id="todoCompletedEmptyMsg">Nothing finished yet, you got this! 💪</div>
+            <div class="todo-empty-msg" id="todoCompletedEmptyMsg">Nothing done yet. Check something off above.</div>
           </div>
         </div>
 
@@ -501,9 +502,9 @@
   <footer class="footer">
     <div class="container">
       <div class="footer-content">
-        <div class="footer-section">
+          <div class="footer-section">
           <h3>🎒 First Digital Backpack</h3>
-          <p>A kid-first digital study tool built for ages 6 to 14. No ads, no fees, no overwhelm and just learning.</p>
+          <p>Notes, flashcards, timer, and music in one place. No ads, no subscription.</p>
         </div>
         <div class="footer-section">
           <h3>The Team</h3>
@@ -528,7 +529,7 @@
       <div class="modal-header">
         <span class="modal-icon">🎒</span>
         <h2>Welcome Back!</h2>
-        <p>Log in to your Digital Backpack</p>
+        <p>Log in to your backpack</p>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -541,7 +542,7 @@
         </div>
         <a href="#" class="forgot-link">Forgot your password?</a>
         <button class="modal-btn" onclick="handleLogin()">Log In</button>
-        <p class="modal-switch">Don't have an account? <a href="#" onclick="switchModal('loginModal','signupModal')">Sign up free</a></p>
+        <p class="modal-switch">No account yet? <a href="#" onclick="switchModal('loginModal','signupModal')">Sign up</a></p>
       </div>
     </div>
   </div>
@@ -553,7 +554,7 @@
       <div class="modal-header">
         <span class="modal-icon">✨</span>
         <h2>Create Your Backpack</h2>
-        <p>Free forever with no credit card needed</p>
+        <p>Free. No card required.</p>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -591,26 +592,22 @@
       setTimeout(() => openModal(openId), 150);
     }
 
-    // close modal when clicking the dark backdrop behind it
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', function(e) {
         if (e.target === overlay) closeModal(overlay.id);
       });
     });
 
-    // also close on Escape key
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         document.querySelectorAll('.modal-overlay.show').forEach(m => closeModal(m.id));
       }
     });
 
-    // wire up all Log In buttons to open the login modal
     document.querySelectorAll('a.btn-login').forEach(btn => {
       btn.addEventListener('click', function(e) { e.preventDefault(); openModal('loginModal'); });
     });
 
-    // wire up all Sign Up buttons to open the signup modal
     document.querySelectorAll('a.btn-signup').forEach(btn => {
       btn.addEventListener('click', function(e) { e.preventDefault(); openModal('signupModal'); });
     });
@@ -630,7 +627,6 @@
       console.log('Signup:', name, email);
     }
 
-    
     function showPage(pageId, linkEl) {
       // hide all pages first
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -689,8 +685,8 @@
       document.querySelectorAll('.pomo-btn').forEach(b => b.classList.remove('active-mode'));
       btnEl.classList.add('active-mode');
 
-      const labels = { 25: 'Study Time!', 5: 'Short Break!', 10: 'Long Break!' };
-      document.getElementById('pomoLabel').textContent = labels[minutes] || 'timer running';
+      const labels = { 25: 'Study time', 5: 'Short break', 10: 'Long break' };
+      document.getElementById('pomoLabel').textContent = labels[minutes] || 'Running';
 
       document.getElementById('pomoPause').disabled = false;
       document.getElementById('pomoReset').disabled = false;
@@ -703,7 +699,7 @@
     function tick() {
       if (pomoSeconds <= 0) {
         clearInterval(pomoInterval);
-        document.getElementById('pomoLabel').textContent = '🎉 time\'s up! nice work';
+        document.getElementById('pomoLabel').textContent = 'Time\'s up. Nice work.';
         document.getElementById('pomoPause').disabled = true;
         return;
       }
@@ -735,7 +731,7 @@
       pomoPaused = false;
       pomoSeconds = 0;
       document.getElementById('pomoTime').textContent = '25:00';
-      document.getElementById('pomoLabel').textContent = 'pick a mode to begin';
+      document.getElementById('pomoLabel').textContent = 'Pick a mode to start';
       document.getElementById('pomoPause').disabled = true;
       document.getElementById('pomoReset').disabled = true;
       document.getElementById('pomoPause').textContent = '⏸️ Pause';
@@ -756,12 +752,28 @@
     });
 
     /* ============================
-       TO-DO LIST
+       TO-DO LIST (backend-integrated)
        ============================ */
     let todos = [];
-    let nextId = 1;
 
-    function addTodoTask() {
+    // Normalize backend row: id, text, done (0/1 -> boolean)
+    function normalizeTodo(row) {
+      return { id: row.id, text: row.text, done: row.done === 1 };
+    }
+
+    async function loadTodos() {
+      try {
+        const rows = await getTodos();
+        todos = rows.map(normalizeTodo);
+        renderTodos();
+      } catch (e) {
+        console.warn('Could not load todos (is the backend running at ' + API_BASE + '?)', e);
+        todos = [];
+        renderTodos();
+      }
+    }
+
+    async function addTodoTask() {
       const input = document.getElementById('todoInput');
       const text = input.value.trim();
       if (!text) {
@@ -770,20 +782,39 @@
         setTimeout(() => input.classList.remove('todo-input--error'), 600);
         return;
       }
-      todos.push({ id: nextId++, text, done: false });
-      input.value = '';
-      input.focus();
-      renderTodos();
+      try {
+        const created = await createTodo({ text });
+        todos.push(normalizeTodo(created));
+        input.value = '';
+        input.focus();
+        renderTodos();
+      } catch (e) {
+        console.error('Failed to add todo', e);
+        alert('Could not add task. Is the backend running?');
+      }
     }
 
-    function toggleTodo(id) {
+    async function toggleTodo(id) {
       const todo = todos.find(t => t.id === id);
-      if (todo) { todo.done = !todo.done; renderTodos(); }
+      if (!todo) return;
+      const newDone = !todo.done;
+      try {
+        await updateTodo(id, { done: newDone });
+        todo.done = newDone;
+        renderTodos();
+      } catch (e) {
+        console.error('Failed to update todo', e);
+      }
     }
 
-    function deleteTodo(id) {
-      todos = todos.filter(t => t.id !== id);
-      renderTodos();
+    async function removeTodo(id) {
+      try {
+        await deleteTodo(id);
+        todos = todos.filter(t => t.id !== id);
+        renderTodos();
+      } catch (e) {
+        console.error('Failed to delete todo', e);
+      }
     }
 
     function renderTodos() {
@@ -827,7 +858,7 @@
       del.className = 'todo-delete-btn';
       del.setAttribute('aria-label', 'Delete task');
       del.innerHTML = '🗑️';
-      del.onclick = () => deleteTodo(todo.id);
+      del.onclick = () => removeTodo(todo.id);
 
       row.appendChild(cb);
       row.appendChild(label);
@@ -835,7 +866,15 @@
       return row;
     }
 
-    renderTodos();
+    // Load todos when To Do page is shown (so we refresh if user navigates back)
+    const originalShowPage = showPage;
+    showPage = function(pageId, linkEl) {
+      originalShowPage(pageId, linkEl);
+      if (pageId === 'todo') loadTodos();
+      if (pageId === 'backpack' && typeof bpLoadFromBackend === 'function') bpLoadFromBackend();
+    };
+
+    loadTodos();
   </script>
 
 </body>
