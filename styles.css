@@ -1000,6 +1000,486 @@ main {
 }
 
 /* =====================
+   backpack — browse, notebook editor, flashcard editor & test -yr
+   ===================== */
+
+/* breadcrumb */
+.bp-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.bp-crumb--link {
+  color: var(--primary);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.bp-crumb--link:hover { opacity: 0.7; }
+
+.bp-crumb-sep {
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
+
+/* empty state inside backpack */
+.bp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 60px 24px;
+}
+
+.bp-empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.bp-empty h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.bp-empty p {
+  font-size: 0.95rem;
+  color: var(--text-light);
+  max-width: 340px;
+}
+
+/* items grid */
+.bp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.bp-item {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem 1rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.bp-item:hover {
+  border-color: var(--primary-light);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(108, 99, 255, 0.12);
+}
+
+.bp-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.bp-item-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.bp-item-delete {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+  padding: 2px;
+  border-radius: 6px;
+}
+
+.bp-item:hover .bp-item-delete { opacity: 0.6; }
+.bp-item-delete:hover { opacity: 1 !important; }
+
+.bp-item-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bp-item-type {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+/* add button + dropdown */
+.bp-add-bar {
+  position: relative;
+  display: inline-block;
+  margin-top: 0.5rem;
+}
+
+.bp-add-btn {
+  background: linear-gradient(135deg, #6C63FF 0%, #a78bfa 100%);
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(108, 99, 255, 0.35);
+}
+
+.bp-add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108, 99, 255, 0.45);
+}
+
+.bp-add-menu {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  min-width: 180px;
+  padding: 6px 0;
+  z-index: 50;
+}
+
+.bp-add-menu.show { display: block; }
+
+.bp-add-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 18px;
+  border: none;
+  background: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.bp-add-menu button:hover {
+  background: var(--bg);
+  color: var(--primary);
+}
+
+/* editor header (shared by notebook + flashcards) */
+.bp-editor-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.bp-back-btn {
+  background: none;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bp-back-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #eef0ff;
+}
+
+.bp-editor-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bp-test-btn {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: #fff;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(67, 233, 123, 0.3);
+  white-space: nowrap;
+}
+
+.bp-test-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(67, 233, 123, 0.4);
+}
+
+/* notebook editor */
+.bp-notebook-area {
+  width: 100%;
+  min-height: 420px;
+  padding: 1.5rem;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.bp-notebook-area:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.12);
+}
+
+/* flashcard editor rows */
+.bp-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.bp-card-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  transition: border-color 0.2s;
+}
+
+.bp-card-row:focus-within {
+  border-color: var(--primary-light);
+}
+
+.bp-card-fields {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+
+.bp-card-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.bp-card-input:focus {
+  border-color: var(--primary);
+}
+
+.bp-card-input::placeholder { color: #b2bec3; }
+
+.bp-card-delete {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.bp-card-delete:hover { opacity: 1; }
+
+.bp-add-card-btn {
+  background: none;
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.bp-add-card-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #eef0ff;
+}
+
+/* flashcard test mode */
+.bp-flashcard-container {
+  perspective: 1000px;
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.bp-flashcard {
+  width: 100%;
+  max-width: 440px;
+  height: 280px;
+  cursor: pointer;
+  position: relative;
+}
+
+.bp-flashcard-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s;
+  transform-style: preserve-3d;
+}
+
+.bp-flashcard.flipped .bp-flashcard-inner {
+  transform: rotateY(180deg);
+}
+
+.bp-flashcard-front,
+.bp-flashcard-back {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 20px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+
+.bp-flashcard-front {
+  background: linear-gradient(135deg, #6C63FF 0%, #a78bfa 100%);
+  color: white;
+}
+
+.bp-flashcard-back {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: white;
+  transform: rotateY(180deg);
+}
+
+.bp-fc-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.7;
+  margin-bottom: 12px;
+}
+
+.bp-fc-text {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.bp-fc-hint {
+  font-size: 0.8rem;
+  opacity: 0.5;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.bp-test-nav {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.bp-test-nav-btn {
+  padding: 10px 24px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.2s;
+}
+
+.bp-test-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.bp-test-nav-btn:not(:disabled):hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #eef0ff;
+}
+
+.bp-test-flip-btn {
+  background: linear-gradient(135deg, #6C63FF 0%, #a78bfa 100%);
+  color: #fff;
+  border-color: transparent;
+}
+
+.bp-test-flip-btn:not(:disabled):hover {
+  background: linear-gradient(135deg, #5b52ee 0%, #9678f0 100%);
+  color: #fff;
+}
+
+/* responsive tweaks */
+@media (max-width: 480px) {
+  .bp-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.75rem;
+  }
+  .bp-card-fields { flex-direction: column; }
+  .bp-flashcard { height: 240px; }
+  .bp-fc-text { font-size: 1.15rem; }
+  .bp-test-nav-btn { padding: 8px 16px; font-size: 0.85rem; }
+}
+
+/* =====================
    pomodoro timer - study/break mode buttons and countdown display
    ===================== */
 .pomo-wrapper {

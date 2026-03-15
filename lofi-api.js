@@ -127,7 +127,7 @@ function getCurrentTrackInfo() {
   };
 }
 
-// -- ui stuff -yr --
+// -- ui stuff --
 
 // build the tracklist rows once -yr
 function renderTracklist() {

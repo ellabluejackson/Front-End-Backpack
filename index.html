@@ -6,6 +6,7 @@
   <title>My Digital Backpack</title>
   <link rel="stylesheet" href="styles.css">
   <script src="lofi-api.js" defer></script>
+  <script src="backpack.js" defer></script>
 </head>
 <body>
 
@@ -29,6 +30,10 @@
       <a href="#home" class="active" onclick="showPage('home', this)">
         <span class="nav-icon">🏠</span>
         Home
+      </a>
+      <a href="#" onclick="showPage('backpack', this)">
+        <span class="nav-icon">🎒</span>
+        Backpack
       </a>
       <a href="#" onclick="showPage('timer', this)">
         <span class="nav-icon">⏱️</span>
@@ -354,6 +359,15 @@
 
     </div><!-- end #page-home -->
 
+    <!-- ========== backpack page ========== -->
+    <div id="page-backpack" class="page">
+      <div class="inner-page-content">
+        <p class="page-title">🎒 Backpack</p>
+        <p class="page-subtitle">Your folders, notebooks, and flashcards.</p>
+        <div id="bpApp"></div>
+      </div>
+    </div>
+
     <!-- ========== timer page ========== -->
     <div id="page-timer" class="page">
       <div class="inner-page-content">
@@ -653,8 +667,10 @@
 
     function handleNew(type) {
       document.getElementById('newDropdown').classList.remove('show');
-      console.log('Create new:', type);
-      // TODO: open a creation form for the selected type
+      // navigate to backpack page and create the item there -yr
+      var bpLink = document.querySelector('.toolbar a[onclick*="backpack"]');
+      showPage('backpack', bpLink);
+      setTimeout(function() { bpPromptCreate(type); }, 100);
     }
 
     // pomodoro timer
