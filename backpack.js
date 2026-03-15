@@ -150,7 +150,7 @@ function bpPromptCreate(type) {
 
   // notebooks and flashcards must live inside a folder -yr
   if ((type === 'notebook' || type === 'flashcards') && isRoot) {
-    alert('Open a folder first — notebooks and flashcards need to be inside a folder.');
+    alert('Open a folder first. Notebooks and flashcards need to be inside a folder!');
     return;
   }
 
