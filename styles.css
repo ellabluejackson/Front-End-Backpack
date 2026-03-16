@@ -2164,3 +2164,33 @@ main {
 .todo-list--completed {
   opacity: 0.85;
 }
+
+/* =====================
+   games page
+   ===================== */
+.game-container {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-top: 1rem;
+  box-shadow: 0 2px 12px rgba(108, 99, 255, 0.08);
+  text-align: center;
+}
+
+.game-card-title {
+  font-size: 1.4rem;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+
+.game-card-desc {
+  color: var(--text-light);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.game-container iframe {
+  max-width: 100%;
+  aspect-ratio: 960 / 540;
+  height: auto;
+}
