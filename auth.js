@@ -74,15 +74,23 @@
     var guest = document.getElementById('authGuestWrap');
     var userWrap = document.getElementById('authUserWrap');
     var greeting = document.getElementById('authGreeting');
+    var logoutBtn = document.getElementById('authLogoutBtn');
     var session = window.getBackpackUser();
     if (!guest || !userWrap) return;
     if (session) {
       guest.setAttribute('hidden', '');
       userWrap.removeAttribute('hidden');
       if (greeting) greeting.textContent = 'Hi, ' + session.name + '!';
+      if (greeting) greeting.removeAttribute('hidden');
+      if (logoutBtn) logoutBtn.removeAttribute('hidden');
     } else {
       guest.removeAttribute('hidden');
       userWrap.setAttribute('hidden', '');
+      if (greeting) {
+        greeting.textContent = '';
+        greeting.setAttribute('hidden', '');
+      }
+      if (logoutBtn) logoutBtn.setAttribute('hidden', '');
     }
   }
   window.updateAuthUI = updateAuthUI;

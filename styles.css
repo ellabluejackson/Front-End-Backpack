@@ -27,6 +27,10 @@ body {
   flex-direction: column;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 /* =====================
    top header - fixed at top, always visible while scrolling
    ===================== */
