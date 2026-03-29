@@ -70,6 +70,44 @@ body {
 .auth-buttons {
   display: flex;
   gap: 1rem;
+  align-items: center;
+}
+
+.auth-user-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.auth-greeting {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-logout {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+}
+
+.btn-logout:hover {
+  background: #fff;
+  color: var(--primary);
+}
+
+.header-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
 }
 
 /* =====================
@@ -1976,6 +2014,54 @@ main {
   .modal-header h2 {
     font-size: 1.35rem;
   }
+}
+
+/* =====================
+   account create page (standalone signup)
+   ===================== */
+.account-create-page .top-header {
+  position: relative;
+}
+
+.account-create-main {
+  min-height: calc(100vh - 80px);
+  padding: 3rem 1.25rem 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, var(--bg) 0%, #e8e6ff 100%);
+}
+
+.account-create-card {
+  background: #fff;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 440px;
+  padding: 40px 36px 36px;
+  box-shadow: 0 24px 60px rgba(108, 99, 255, 0.2);
+}
+
+.account-create-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.account-create-header h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.account-create-header p {
+  font-size: 0.95rem;
+  color: var(--text-light);
+}
+
+.account-create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 /* =====================

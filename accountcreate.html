@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — My Digital Backpack</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="auth.js" defer></script>
+</head>
+<body class="account-create-page">
+
+  <header class="top-header">
+    <div class="nav-container">
+      <div class="header-brand">
+        <a href="index.html" class="header-brand-link">
+          <span class="backpack-icon">🎒</span>
+          <h1>My Digital Backpack</h1>
+        </a>
+      </div>
+      <div class="auth-buttons" id="authButtons">
+        <span class="auth-user-wrap" id="authUserWrap" hidden>
+          <span class="auth-greeting" id="authGreeting"></span>
+          <button type="button" class="btn btn-logout" id="authLogoutBtn">Log Out</button>
+        </span>
+        <span class="auth-guest-wrap" id="authGuestWrap">
+          <a href="index.html" class="btn btn-login">Log In</a>
+          <a href="accountcreate.html" class="btn btn-signup">Sign Up</a>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="account-create-main">
+    <div class="account-create-card">
+      <div class="account-create-header">
+        <span class="modal-icon">✨</span>
+        <h2>Create Your Backpack</h2>
+        <p>Free forever — your account is saved on this device</p>
+      </div>
+      <form id="accountCreateForm" class="account-create-form" novalidate>
+        <div class="form-group">
+          <label for="acName">Your Name</label>
+          <input type="text" id="acName" name="name" required autocomplete="name" placeholder="e.g. Alex">
+        </div>
+        <div class="form-group">
+          <label for="acEmail">Email</label>
+          <input type="email" id="acEmail" name="email" required autocomplete="email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label for="acPassword">Password</label>
+          <input type="password" id="acPassword" name="password" required autocomplete="new-password" placeholder="At least 6 characters">
+        </div>
+        <button type="submit" class="modal-btn">Create Account</button>
+        <p class="modal-switch">Already have an account? <a href="index.html?login=1">Open the app and log in</a></p>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('accountCreateForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var name = document.getElementById('acName').value;
+      var email = document.getElementById('acEmail').value;
+      var password = document.getElementById('acPassword').value;
+      var result = await window.registerBackpackAccount(name, email, password);
+      if (!result.ok) {
+        alert(result.message);
+        return;
+      }
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>

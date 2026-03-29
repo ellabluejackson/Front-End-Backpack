@@ -1,5 +1,4 @@
 // backpack — folders, notebooks, and flashcards -yr
-
 var bpItems = [];
 var bpCurrentFolder = null;
 var bpView = 'browse';

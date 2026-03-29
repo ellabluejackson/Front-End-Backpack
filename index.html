@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="styles.css">
   <script src="lofi-api.js" defer></script>
   <script src="backpack.js" defer></script>
+  <script src="auth.js" defer></script>
 </head>
 <body>
 
@@ -17,9 +18,15 @@
         <span class="backpack-icon">🎒</span>
         <h1>My Digital Backpack</h1>
       </div>
-      <div class="auth-buttons">
-        <a href="#" class="btn btn-login">Log In</a>
-        <a href="accountcreate.html" class="btn btn-signup">Sign Up</a>
+      <div class="auth-buttons" id="authButtons">
+        <span class="auth-user-wrap" id="authUserWrap" hidden>
+          <span class="auth-greeting" id="authGreeting"></span>
+          <button type="button" class="btn btn-logout" id="authLogoutBtn">Log Out</button>
+        </span>
+        <span class="auth-guest-wrap" id="authGuestWrap">
+          <a href="#" class="btn btn-login">Log In</a>
+          <a href="accountcreate.html" class="btn btn-signup">Sign Up</a>
+        </span>
       </div>
     </div>
   </header>
@@ -621,21 +628,6 @@
     document.querySelectorAll('a.btn-signup').forEach(btn => {
       btn.addEventListener('click', function(e) { e.preventDefault(); openModal('signupModal'); });
     });
-
-    function handleLogin() {
-      const email = document.getElementById('loginEmail').value;
-      if (!email) { alert('Please enter your email.'); return; }
-      closeModal('loginModal');
-      console.log('Login attempt:', email);
-    }
-
-    function handleSignup() {
-      const name = document.getElementById('signupName').value;
-      const email = document.getElementById('signupEmail').value;
-      if (!name || !email) { alert('Please fill in all fields.'); return; }
-      closeModal('signupModal');
-      console.log('Signup:', name, email);
-    }
 
     
     function showPage(pageId, linkEl) {

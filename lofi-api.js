@@ -188,4 +188,3 @@ function handleShuffle() {
 
 // start when the dom is ready -yr
 document.addEventListener('DOMContentLoaded', loadYTAPI);
-
