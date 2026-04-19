@@ -102,6 +102,11 @@
       }
       if (logoutBtn) logoutBtn.setAttribute('hidden', '');
     }
+    document.dispatchEvent(
+      new CustomEvent('backpack-auth-changed', {
+        detail: { user: session }
+      })
+    );
   }
   window.updateAuthUI = updateAuthUI;
 

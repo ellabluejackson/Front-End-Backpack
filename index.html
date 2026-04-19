@@ -922,7 +922,17 @@
       return row;
     }
 
+    loadTodos();
     renderTodos();
+
+    document.addEventListener('backpack-auth-changed', function(e) {
+      if (e.detail && e.detail.user) {
+        loadTodos();
+      } else {
+        resetTodos();
+      }
+      renderTodos();
+    });
   </script>
 
 </body>

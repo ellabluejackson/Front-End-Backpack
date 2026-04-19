@@ -5,6 +5,64 @@ var bpView = 'browse';
 var bpEditingItem = null;
 var bpTestIndex = 0;
 var bpTestFlipped = false;
+var BP_STORAGE_PREFIX = 'backpack_data_v1::';
+
+function bpCurrentUserEmail() {
+  if (typeof window.getBackpackUser !== 'function') return null;
+  var session = window.getBackpackUser();
+  return session && session.email ? String(session.email).toLowerCase() : null;
+}
+
+function bpStorageKey() {
+  var email = bpCurrentUserEmail();
+  return email ? BP_STORAGE_PREFIX + email : null;
+}
+
+function bpSaveState() {
+  var key = bpStorageKey();
+  if (!key) return;
+  var payload = {
+    items: bpItems,
+    currentFolder: bpCurrentFolder,
+    view: bpView,
+    editingItemId: bpEditingItem ? bpEditingItem.id : null
+  };
+  localStorage.setItem(key, JSON.stringify(payload));
+}
+
+function bpResetState() {
+  bpItems = [];
+  bpCurrentFolder = null;
+  bpView = 'browse';
+  bpEditingItem = null;
+  bpTestIndex = 0;
+  bpTestFlipped = false;
+}
+
+function bpLoadState() {
+  var key = bpStorageKey();
+  if (!key) {
+    bpResetState();
+    return;
+  }
+  try {
+    var raw = localStorage.getItem(key);
+    if (!raw) {
+      bpResetState();
+      return;
+    }
+    var parsed = JSON.parse(raw);
+    bpItems = Array.isArray(parsed.items) ? parsed.items : [];
+    bpCurrentFolder = parsed.currentFolder || null;
+    bpView = parsed.view || 'browse';
+    bpEditingItem = parsed.editingItemId ? bpFind(parsed.editingItemId) : null;
+    if (!bpEditingItem && bpView !== 'browse') bpView = 'browse';
+    bpTestIndex = 0;
+    bpTestFlipped = false;
+  } catch (e) {
+    bpResetState();
+  }
+}
 
 function bpId() {
   return 'bp_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
@@ -121,6 +179,7 @@ function bpCreate(type, name, parentId) {
     content: type === 'flashcards' ? [] : ''
   };
   bpItems.push(item);
+  bpSaveState();
   bpRender();
   return item;
 }
@@ -174,14 +233,17 @@ function bpOpen(id) {
   if (item.type === 'folder') {
     bpCurrentFolder = item.id;
     bpView = 'browse';
+    bpSaveState();
     bpRender();
   } else if (item.type === 'notebook') {
     bpEditingItem = item;
     bpView = 'notebook';
+    bpSaveState();
     bpRender();
   } else if (item.type === 'flashcards') {
     bpEditingItem = item;
     bpView = 'flashcards';
+    bpSaveState();
     bpRender();
   }
 }
@@ -190,6 +252,7 @@ function bpGoRoot() {
   bpCurrentFolder = null;
   bpView = 'browse';
   bpEditingItem = null;
+  bpSaveState();
   bpRender();
 }
 
@@ -197,24 +260,28 @@ function bpGoFolder(id) {
   bpCurrentFolder = id;
   bpView = 'browse';
   bpEditingItem = null;
+  bpSaveState();
   bpRender();
 }
 
 function bpGoBack() {
   if (bpView === 'test') {
     bpView = 'flashcards';
+    bpSaveState();
     bpRender();
     return;
   }
   if (bpView === 'notebook' || bpView === 'flashcards') {
     bpEditingItem = null;
     bpView = 'browse';
+    bpSaveState();
     bpRender();
     return;
   }
   if (bpCurrentFolder) {
     var folder = bpFind(bpCurrentFolder);
     bpCurrentFolder = folder ? folder.parentId : null;
+    bpSaveState();
     bpRender();
   }
 }
@@ -362,6 +429,7 @@ function bpRenderNotebook(app) {
   if (area) {
     area.addEventListener('input', function() {
       item.content = area.value;
+      bpSaveState();
     });
     area.focus();
   }
@@ -429,6 +497,7 @@ function bpRenderCards(app) {
       var side = this.getAttribute('data-side');
       if (item.content[idx]) {
         item.content[idx][side] = this.value;
+        bpSaveState();
       }
     });
   });
@@ -481,6 +550,7 @@ function bpStartTest() {
   bpTestIndex = 0;
   bpTestFlipped = false;
   bpView = 'test';
+  bpSaveState();
   bpRender();
 }
 
@@ -531,6 +601,7 @@ function bpTestPrev() {
   if (bpTestIndex > 0) {
     bpTestIndex--;
     bpTestFlipped = false;
+    bpSaveState();
     bpRender();
   }
 }
@@ -539,12 +610,23 @@ function bpTestNext() {
   if (bpEditingItem && bpTestIndex < bpEditingItem.content.length - 1) {
     bpTestIndex++;
     bpTestFlipped = false;
+    bpSaveState();
     bpRender();
   }
 }
 
 // render once on load -yr
 document.addEventListener('DOMContentLoaded', function() {
+  bpLoadState();
+  bpRender();
+});
+
+document.addEventListener('backpack-auth-changed', function (e) {
+  if (e.detail && e.detail.user) {
+    bpLoadState();
+  } else {
+    bpResetState();
+  }
   bpRender();
 });
 
