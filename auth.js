@@ -67,6 +67,16 @@
 
   window.logoutBackpack = function () {
     setSession(null);
+    if (typeof window.clearBackpackApiToken === 'function') {
+      window.clearBackpackApiToken();
+    }
+    updateAuthUI();
+  };
+
+  /** Call after successful /auth/login or /auth/signup (backend) so header matches */
+  window.applyBackpackApiUser = function (user) {
+    if (!user || !user.email) return;
+    setSession({ email: user.email, name: user.name || 'Student' });
     updateAuthUI();
   };
 
@@ -94,68 +104,6 @@
     }
   }
   window.updateAuthUI = updateAuthUI;
-
-  window.handleLogin = async function () {
-    var emailEl = document.getElementById('loginEmail');
-    var passEl = document.getElementById('loginPassword');
-    var email = normalizeEmail(emailEl && emailEl.value);
-    var password = passEl ? passEl.value : '';
-    if (!email) {
-      alert('Please enter your email.');
-      return;
-    }
-    if (!password) {
-      alert('Please enter your password.');
-      return;
-    }
-    var accounts = getAccounts();
-    var row = accounts[email];
-    if (!row) {
-      alert('No account found for that email. Sign up first, or check your email.');
-      return;
-    }
-    var hash = await hashPassword(password);
-    if (row.passwordHash !== hash) {
-      alert('That password does not match. Try again.');
-      return;
-    }
-    setSession({ email: email, name: row.name });
-    if (emailEl) emailEl.value = '';
-    if (passEl) passEl.value = '';
-    if (typeof closeModal === 'function') closeModal('loginModal');
-    updateAuthUI();
-  };
-
-  window.handleSignup = async function () {
-    var nameEl = document.getElementById('signupName');
-    var emailEl = document.getElementById('signupEmail');
-    var passEl = document.getElementById('signupPassword');
-    var name = nameEl ? nameEl.value.trim() : '';
-    var email = normalizeEmail(emailEl && emailEl.value);
-    var password = passEl ? passEl.value : '';
-    if (!name || !email) {
-      alert('Please fill in your name and email.');
-      return;
-    }
-    if (password.length < MIN_PASSWORD) {
-      alert('Password must be at least ' + MIN_PASSWORD + ' characters.');
-      return;
-    }
-    var accounts = getAccounts();
-    if (accounts[email]) {
-      alert('An account with that email already exists. Log in instead.');
-      return;
-    }
-    var hash = await hashPassword(password);
-    accounts[email] = { name: name, passwordHash: hash };
-    saveAccounts(accounts);
-    setSession({ email: email, name: name });
-    if (nameEl) nameEl.value = '';
-    if (emailEl) emailEl.value = '';
-    if (passEl) passEl.value = '';
-    if (typeof closeModal === 'function') closeModal('signupModal');
-    updateAuthUI();
-  };
 
   /** Used by accountcreate.html */
   window.registerBackpackAccount = async function (name, email, password) {

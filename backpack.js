@@ -41,6 +41,75 @@ function escAttr(str) {
   return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function numId(v) {
+  if (v == null || v === '') return null;
+  if (typeof v === 'string' && v.indexOf('fc_') === 0) return parseInt(v.slice(3), 10) || null;
+  var n = parseInt(v, 10);
+  return isNaN(n) ? null : n;
+}
+
+// Load from backend and build bpItems
+function bpBuildItems(folders, notes, flashcards) {
+  var items = [];
+  function hasSubfolders(fid) {
+    var n = numId(fid);
+    return n != null && folders.some(function(f) { return numId(f.parent_id) === n; });
+  }
+  function hasNotesInFolder(fid) {
+    var n = numId(fid);
+    return n != null && notes.some(function(note) { return numId(note.folder_id) === n; });
+  }
+  function cardsInFolder(fid) {
+    var n = numId(fid);
+    if (n == null) return [];
+    return flashcards
+      .filter(function(c) { return numId(c.folder_id) === n; })
+      .map(function(c) { return { id: c.id, question: c.front, answer: c.back }; });
+  }
+  function toParentId(v) { return v != null ? String(v) : null; }
+  folders.forEach(function(f) {
+    var hasCards = cardsInFolder(f.id).length > 0;
+    var markedAsFlashcardSet = f.is_flashcard_set === true || f.is_flashcard_set === 1;
+    var isFlashcardSet = markedAsFlashcardSet || (!hasSubfolders(f.id) && !hasNotesInFolder(f.id) && hasCards);
+    if (isFlashcardSet) {
+      items.push({
+        id: 'fc_' + f.id,
+        _folderId: f.id,
+        type: 'flashcards',
+        name: f.name,
+        parentId: toParentId(f.parent_id),
+        content: cardsInFolder(f.id)
+      });
+    } else {
+      items.push({
+        id: String(f.id),
+        type: 'folder',
+        name: f.name,
+        parentId: toParentId(f.parent_id),
+        content: null
+      });
+    }
+  });
+  notes.forEach(function(n) {
+    items.push({
+      id: 'note_' + n.id,
+      _noteId: n.id,
+      type: 'notebook',
+      name: n.title,
+      parentId: toParentId(n.folder_id),
+      content: n.content || ''
+    });
+  });
+  bpItems = items;
+}
+
+function bpLoadFromBackend() {
+  return Promise.all([getFolders(), getNotes(), getFlashcards()]).then(function(results) {
+    bpBuildItems(results[0], results[1], results[2]);
+    return Promise.resolve();
+  });
+}
+
 // -- crud -yr --
 
 function bpCreate(type, name, parentId) {
@@ -57,22 +126,38 @@ function bpCreate(type, name, parentId) {
 }
 
 function bpDelete(id) {
-  var toDelete = [id];
-  function gather(pid) {
-    bpItems.forEach(function(i) {
-      if (i.parentId === pid) {
-        toDelete.push(i.id);
-        gather(i.id);
-      }
-    });
+  var item = bpFind(id);
+  if (!item) return;
+  var p = null;
+  if (item.type === 'folder') {
+    p = deleteFolder(Number(item.id));
+  } else if (item.type === 'notebook') {
+    p = deleteNote(item._noteId);
+  } else if (item.type === 'flashcards') {
+    p = deleteFolder(item._folderId);
+  } else {
+    return;
   }
-  gather(id);
-  bpItems = bpItems.filter(function(i) { return toDelete.indexOf(i.id) === -1; });
-  if (bpEditingItem && toDelete.indexOf(bpEditingItem.id) !== -1) {
-    bpEditingItem = null;
-    bpView = 'browse';
+  p.then(function() {
+    if (bpEditingItem && (bpEditingItem.id === id || bpEditingItem.parentId === id)) {
+      bpEditingItem = null;
+      bpView = 'browse';
+    }
+    return bpLoadFromBackend();
+  }).then(function() {
+    bpRender();
+  }).catch(function(err) {
+    var msg = err.status ? 'Server error ' + err.status : (err.message || 'Could not delete.');
+    alert('Could not delete: ' + msg);
+  });
+}
+
+function bpDeleteClick(ev, id) {
+  if (ev) {
+    ev.stopPropagation();
+    ev.preventDefault();
   }
-  bpRender();
+  bpConfirmDelete(id);
 }
 
 function bpConfirmDelete(id) {
@@ -147,7 +232,6 @@ function bpPromptCreate(type) {
 
   var isRoot = bpCurrentFolder === null;
 
-  // notebooks and flashcards must live inside a folder -yr
   if ((type === 'notebook' || type === 'flashcards') && isRoot) {
     alert('Open a folder first. Notebooks and flashcards need to be inside a folder!');
     return;
@@ -156,8 +240,23 @@ function bpPromptCreate(type) {
   var labels = { folder: 'folder', notebook: 'notebook', flashcards: 'flashcard set' };
   var name = prompt('Name your new ' + labels[type] + ':');
   if (name === null) return;
+  name = (name && name.trim()) ? name.trim() : 'Untitled';
 
-  bpCreate(type, name);
+  var parentId = numId(bpCurrentFolder);
+  var p = null;
+  if (type === 'folder' || type === 'flashcards') {
+    p = createFolder({ name: name, parent_id: parentId, is_flashcard_set: type === 'flashcards' });
+  } else {
+    p = createNote({ title: name, content: '', folder_id: parentId });
+  }
+  p.then(function() {
+    return bpLoadFromBackend();
+  }).then(function() {
+    bpRender();
+  }).catch(function(err) {
+    var msg = err.status ? 'Server error ' + err.status + '. Is the backend running?' : (err.message || 'Could not create.');
+    alert('Could not create: ' + msg);
+  });
 }
 
 // close add menu on outside click -yr
@@ -217,10 +316,11 @@ function bpRenderBrowse(app) {
     children.forEach(function(item) {
       var icons = { folder: '📁', notebook: '📓', flashcards: '🃏' };
       var labels = { folder: 'Folder', notebook: 'Notebook', flashcards: 'Flashcards' };
-      html += '<div class="bp-item" onclick="bpOpen(\'' + item.id + '\')">';
+      var safeId = String(item.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      html += '<div class="bp-item" onclick="bpOpen(\'' + safeId + '\')">';
       html += '<div class="bp-item-top">';
       html += '<span class="bp-item-icon">' + icons[item.type] + '</span>';
-      html += '<button class="bp-item-delete" onclick="event.stopPropagation(); bpConfirmDelete(\'' + item.id + '\')" title="Delete">🗑️</button>';
+      html += '<button type="button" class="bp-item-delete" onclick="bpDeleteClick(event,\'' + safeId + '\')" title="Delete">🗑️</button>';
       html += '</div>';
       html += '<span class="bp-item-name">' + escHtml(item.name) + '</span>';
       html += '<span class="bp-item-type">' + labels[item.type] + '</span>';
@@ -271,7 +371,16 @@ function bpSaveNotebook() {
   var area = document.getElementById('bpNotebookArea');
   if (area && bpEditingItem) {
     bpEditingItem.content = area.value;
+    bpEditingItem.name = (bpEditingItem.name && bpEditingItem.name.trim()) ? bpEditingItem.name.trim() : 'Untitled';
   }
+  if (!bpEditingItem || bpEditingItem.type !== 'notebook') return;
+  updateNote(bpEditingItem._noteId, {
+    title: bpEditingItem.name,
+    content: bpEditingItem.content || '',
+    folder_id: numId(bpEditingItem.parentId)
+  }).catch(function(err) {
+    console.error('Could not save note', err);
+  });
 }
 
 // -- flashcard editor -yr --
@@ -282,7 +391,7 @@ function bpRenderCards(app) {
   var html = '';
 
   html += '<div class="bp-editor-header">';
-  html += '<button class="bp-back-btn" onclick="bpGoBack()">← Back</button>';
+  html += '<button class="bp-back-btn" onclick="bpSaveCards(); bpGoBack()">← Back</button>';
   html += '<span class="bp-editor-title">🃏 ' + escHtml(item.name) + '</span>';
   if (cards.length > 0) {
     html += '<button class="bp-test-btn" onclick="bpStartTest()">📝 Test Me</button>';
@@ -325,20 +434,44 @@ function bpRenderCards(app) {
   });
 }
 
+function bpSaveCards() {
+  if (!bpEditingItem || bpEditingItem.type !== 'flashcards') return;
+  var fid = bpEditingItem._folderId;
+  bpEditingItem.content.forEach(function(card) {
+    if (card.id) {
+      updateFlashcard(card.id, { front: card.question || '', back: card.answer || '', folder_id: fid }).catch(function(err) { console.error('Save card failed', err); });
+    }
+  });
+}
+
 function bpAddCard() {
-  if (!bpEditingItem) return;
-  bpEditingItem.content.push({ question: '', answer: '' });
-  bpRender();
-  setTimeout(function() {
-    var inputs = document.querySelectorAll('.bp-card-input[data-side="question"]');
-    if (inputs.length) inputs[inputs.length - 1].focus();
-  }, 50);
+  if (!bpEditingItem || bpEditingItem.type !== 'flashcards') return;
+  createFlashcard({ front: '', back: '', folder_id: bpEditingItem._folderId }).then(function(res) {
+    bpEditingItem.content.push({ id: res.id, question: res.front, answer: res.back });
+    bpRender();
+    setTimeout(function() {
+      var inputs = document.querySelectorAll('.bp-card-input[data-side="question"]');
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    }, 50);
+  }).catch(function(err) {
+    alert('Could not add card: ' + (err.message || 'Server error'));
+  });
 }
 
 function bpDeleteCard(index) {
   if (!bpEditingItem) return;
-  bpEditingItem.content.splice(index, 1);
-  bpRender();
+  var card = bpEditingItem.content[index];
+  if (card && card.id) {
+    deleteFlashcard(card.id).then(function() {
+      bpEditingItem.content.splice(index, 1);
+      bpRender();
+    }).catch(function(err) {
+      alert('Could not delete card: ' + (err.message || 'Server error'));
+    });
+  } else {
+    bpEditingItem.content.splice(index, 1);
+    bpRender();
+  }
 }
 
 // -- flashcard test mode -yr --

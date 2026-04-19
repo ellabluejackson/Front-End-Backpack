@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Digital Backpack</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="api.js" defer></script>
+  <script src="auth.js" defer></script>
   <script src="lofi-api.js" defer></script>
   <script src="backpack.js" defer></script>
-  <script src="auth.js" defer></script>
 </head>
 <body>
 
@@ -629,6 +630,52 @@
       btn.addEventListener('click', function(e) { e.preventDefault(); openModal('signupModal'); });
     });
 
+    function handleLogin() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      if (!email || !password) {
+        alert('Please enter email and password.');
+        return;
+      }
+      login({ email: email, password: password })
+        .then(function (res) {
+          closeModal('loginModal');
+          if (typeof applyBackpackApiUser === 'function') {
+            applyBackpackApiUser(res.user);
+          }
+          alert('Welcome back, ' + res.user.name + '!');
+        })
+        .catch(function (err) {
+          console.error('Login failed', err);
+          alert('Login failed. Check email/password and that the backend is running on port 8000.');
+        });
+    }
+
+    function handleSignup() {
+      const name = document.getElementById('signupName').value.trim();
+      const email = document.getElementById('signupEmail').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      if (!name || !email || !password) {
+        alert('Please fill in all fields.');
+        return;
+      }
+      signup({ name: name, email: email, password: password })
+        .then(function (res) {
+          closeModal('signupModal');
+          console.log('Signup:', name, email);
+          if (typeof applyBackpackApiUser === 'function') {
+            applyBackpackApiUser(res.user);
+          }
+          alert('Account created. Hi, ' + res.user.name + '!');
+        })
+        .catch(function (err) {
+          console.error('signup err', err);
+          if (err && err.status === 409) alert('email already taken');
+          else if (err && err.status === 404) alert('404 - auth route missing, restart backend');
+          else alert('signup didnt work - backend on?');
+        });
+    }
+
     
     function showPage(pageId, linkEl) {
       // hide all pages first
@@ -639,6 +686,17 @@
       // update which nav link looks active
       document.querySelectorAll('.toolbar a').forEach(a => a.classList.remove('active'));
       if (linkEl) linkEl.classList.add('active');
+      // load backpack data from backend when opening Backpack page
+      if (pageId === 'backpack' && typeof bpLoadFromBackend === 'function') {
+        bpLoadFromBackend().then(function() { bpRender(); }).catch(function(err) {
+          console.error('Backpack load failed', err);
+          bpRender();
+        });
+      }
+      // load todos from backend when opening Todo page
+      if (pageId === 'todo' && typeof loadTodosFromBackend === 'function') {
+        loadTodosFromBackend().catch(function(err) { console.error('Todo load failed', err); });
+      }
       // stop the link from navigating
       return false;
     }
@@ -758,7 +816,13 @@
        TO-DO LIST
        ============================ */
     let todos = [];
-    let nextId = 1;
+
+    function loadTodosFromBackend() {
+      return getTodos().then(function(list) {
+        todos = list.map(function(t) { return { id: t.id, text: t.text, done: !!t.done }; });
+        renderTodos();
+      });
+    }
 
     function addTodoTask() {
       const input = document.getElementById('todoInput');
@@ -769,20 +833,39 @@
         setTimeout(() => input.classList.remove('todo-input--error'), 600);
         return;
       }
-      todos.push({ id: nextId++, text, done: false });
-      input.value = '';
-      input.focus();
-      renderTodos();
+      createTodo({ text: text }).then(function(t) {
+        todos.push({ id: t.id, text: t.text, done: !!t.done });
+        input.value = '';
+        input.focus();
+        renderTodos();
+      }).catch(function(err) {
+        console.error('Could not add todo', err);
+        alert('Could not add task. Is the backend running?');
+      });
     }
 
     function toggleTodo(id) {
       const todo = todos.find(t => t.id === id);
-      if (todo) { todo.done = !todo.done; renderTodos(); }
+      if (!todo) return;
+      const newDone = !todo.done;
+      updateTodo(id, { done: newDone }).then(function() {
+        todo.done = newDone;
+        renderTodos();
+      }).catch(function(err) { console.error('Could not update todo', err); });
     }
 
-    function deleteTodo(id) {
-      todos = todos.filter(t => t.id !== id);
-      renderTodos();
+    function handleDeleteTodo(id) {
+      if (typeof window.deleteTodo !== 'function') {
+        alert('API not loaded. Refresh the page.');
+        return;
+      }
+      window.deleteTodo(id).then(function() {
+        todos = todos.filter(t => t.id !== id);
+        renderTodos();
+      }).catch(function(err) {
+        console.error('Could not delete todo', err);
+        alert('Could not delete task. Is the backend running?');
+      });
     }
 
     function renderTodos() {
@@ -823,10 +906,15 @@
       label.textContent = todo.text;
 
       const del = document.createElement('button');
+      del.type = 'button';
       del.className = 'todo-delete-btn';
       del.setAttribute('aria-label', 'Delete task');
       del.innerHTML = '🗑️';
-      del.onclick = () => deleteTodo(todo.id);
+      del.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        handleDeleteTodo(todo.id);
+      };
 
       row.appendChild(cb);
       row.appendChild(label);

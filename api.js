@@ -1,25 +1,93 @@
-// Backend API base URL – change if your server runs elsewhere
-const API_BASE = 'http://localhost:8000';
+// Backend API — auth token + resource calls
+const API_BASES = [
+  'http://localhost:8000',
+  'http://127.0.0.1:8000',
+  'http://localhost:8001',
+  'http://127.0.0.1:8001',
+];
+const AUTH_TOKEN_KEY = 'backpack_access_token';
 
-async function apiFetch(path, options = {}) {
-  const url = `${API_BASE}${path}`;
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-  if (!res.ok) {
-    const err = new Error(res.statusText || 'API error');
-    err.status = res.status;
-    err.response = res;
-    throw err;
+function getAuthToken() {
+  try {
+    return localStorage.getItem(AUTH_TOKEN_KEY);
+  } catch (e) {
+    return null;
   }
-  return res.json();
 }
 
-// Todos
+function setAuthToken(token) {
+  try {
+    if (token) localStorage.setItem(AUTH_TOKEN_KEY, token);
+  } catch (e) {
+    console.warn('Could not save auth token', e);
+  }
+}
+
+function clearAuthToken() {
+  try {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.clearBackpackApiToken = clearAuthToken;
+}
+
+async function apiFetch(path, options) {
+  options = options || {};
+  const token = getAuthToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+  if (token) headers.Authorization = 'Bearer ' + token;
+
+  let lastErr = null;
+  for (var i = 0; i < API_BASES.length; i++) {
+    var base = API_BASES[i];
+    var url = base + path;
+    try {
+      var res = await fetch(url, { ...options, headers: headers });
+      if (!res.ok) {
+        var err = new Error(res.statusText || 'API error');
+        err.status = res.status;
+        err.response = res;
+        err.url = url;
+        throw err;
+      }
+      return res.json();
+    } catch (err) {
+      if (err && typeof err.status === 'number') throw err;
+      lastErr = err;
+    }
+  }
+  throw lastErr || new Error('Could not reach backend API');
+}
+
+async function signup(body) {
+  var res = await apiFetch('/auth/signup', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  if (res && res.access_token) setAuthToken(res.access_token);
+  return res;
+}
+
+async function login(body) {
+  var res = await apiFetch('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  if (res && res.access_token) setAuthToken(res.access_token);
+  return res;
+}
+
+async function me() {
+  return apiFetch('/auth/me');
+}
+
 async function getTodos() {
   return apiFetch('/todos');
 }
@@ -32,18 +100,17 @@ async function createTodo(body) {
 }
 
 async function updateTodo(id, params) {
-  const search = new URLSearchParams();
+  var search = new URLSearchParams();
   if (params.done !== undefined) search.set('done', params.done);
   if (params.folder_id !== undefined) search.set('folder_id', params.folder_id);
-  const qs = search.toString();
-  return apiFetch(`/todos/${id}?${qs}`, { method: 'PATCH' });
+  var qs = search.toString();
+  return apiFetch('/todos/' + id + '?' + qs, { method: 'PATCH' });
 }
 
 async function deleteTodo(id) {
-  return apiFetch(`/todos/${id}`, { method: 'DELETE' });
+  return apiFetch('/todos/' + id, { method: 'DELETE' });
 }
 
-// Folders
 async function getFolders() {
   return apiFetch('/folders');
 }
@@ -56,17 +123,16 @@ async function createFolder(body) {
 }
 
 async function updateFolder(id, body) {
-  return apiFetch(`/folders/${id}`, {
+  return apiFetch('/folders/' + id, {
     method: 'PUT',
     body: JSON.stringify(body),
   });
 }
 
 async function deleteFolder(id) {
-  return apiFetch(`/folders/${id}`, { method: 'DELETE' });
+  return apiFetch('/folders/' + id, { method: 'DELETE' });
 }
 
-// Notes (notebooks)
 async function getNotes() {
   return apiFetch('/notes');
 }
@@ -79,17 +145,16 @@ async function createNote(body) {
 }
 
 async function updateNote(id, body) {
-  return apiFetch(`/notes/${id}`, {
+  return apiFetch('/notes/' + id, {
     method: 'PUT',
     body: JSON.stringify(body),
   });
 }
 
 async function deleteNote(id) {
-  return apiFetch(`/notes/${id}`, { method: 'DELETE' });
+  return apiFetch('/notes/' + id, { method: 'DELETE' });
 }
 
-// Flashcards (backend uses front/back, we map to question/answer)
 async function getFlashcards() {
   return apiFetch('/flashcards');
 }
@@ -102,12 +167,19 @@ async function createFlashcard(body) {
 }
 
 async function updateFlashcard(id, body) {
-  return apiFetch(`/flashcards/${id}`, {
+  return apiFetch('/flashcards/' + id, {
     method: 'PUT',
     body: JSON.stringify(body),
   });
 }
 
 async function deleteFlashcard(id) {
-  return apiFetch(`/flashcards/${id}`, { method: 'DELETE' });
+  return apiFetch('/flashcards/' + id, { method: 'DELETE' });
+}
+
+if (typeof window !== 'undefined') {
+  window.deleteTodo = deleteTodo;
+  window.login = login;
+  window.signup = signup;
+  window.me = me;
 }
