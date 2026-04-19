@@ -70,7 +70,7 @@
     if (typeof window.clearBackpackApiToken === 'function') {
       window.clearBackpackApiToken();
     }
-    updateAuthUI();
+    window.location.reload();
   };
 
   /** Call after successful /auth/login or /auth/signup (backend) so header matches */
