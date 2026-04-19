@@ -131,6 +131,27 @@
     return { ok: true };
   };
 
+  window.localBackpackSignup = async function (name, email, password) {
+    var result = await window.registerBackpackAccount(name, email, password);
+    if (!result.ok) throw new Error(result.message || 'Signup failed');
+    var user = window.getBackpackUser();
+    return { user: user };
+  };
+
+  window.localBackpackLogin = async function (email, password) {
+    email = normalizeEmail(email);
+    password = String(password || '');
+    if (!email || !password) throw new Error('Please enter email and password.');
+    var accounts = getAccounts();
+    var row = accounts[email];
+    if (!row) throw new Error('No account found for that email. Please sign up first.');
+    var hash = await hashPassword(password);
+    if (row.passwordHash !== hash) throw new Error('Wrong password. Try again.');
+    setSession({ email: email, name: row.name });
+    updateAuthUI();
+    return { user: window.getBackpackUser() };
+  };
+
   document.addEventListener('DOMContentLoaded', function () {
     updateAuthUI();
     var logoutBtn = document.getElementById('authLogoutBtn');

@@ -637,7 +637,10 @@
         alert('Please enter email and password.');
         return;
       }
-      login({ email: email, password: password })
+      const backendLogin = (typeof login === 'function')
+        ? login({ email: email, password: password })
+        : Promise.reject(new Error('Backend login unavailable'));
+      backendLogin
         .then(function (res) {
           closeModal('loginModal');
           if (typeof applyBackpackApiUser === 'function') {
@@ -645,9 +648,16 @@
           }
           alert('Welcome back, ' + res.user.name + '!');
         })
-        .catch(function (err) {
-          console.error('Login failed', err);
-          alert('Login failed. Check email/password and that the backend is running on port 8000.');
+        .catch(async function (err) {
+          console.warn('Backend login failed, trying local login:', err);
+          try {
+            if (typeof localBackpackLogin !== 'function') throw new Error('Local auth unavailable.');
+            const res = await localBackpackLogin(email, password);
+            closeModal('loginModal');
+            alert('Welcome back, ' + res.user.name + '!');
+          } catch (localErr) {
+            alert(localErr && localErr.message ? localErr.message : 'Login failed.');
+          }
         });
     }
 
@@ -659,7 +669,10 @@
         alert('Please fill in all fields.');
         return;
       }
-      signup({ name: name, email: email, password: password })
+      const backendSignup = (typeof signup === 'function')
+        ? signup({ name: name, email: email, password: password })
+        : Promise.reject(new Error('Backend signup unavailable'));
+      backendSignup
         .then(function (res) {
           closeModal('signupModal');
           console.log('Signup:', name, email);
@@ -668,11 +681,16 @@
           }
           alert('Account created. Hi, ' + res.user.name + '!');
         })
-        .catch(function (err) {
-          console.error('signup err', err);
-          if (err && err.status === 409) alert('email already taken');
-          else if (err && err.status === 404) alert('404 - auth route missing, restart backend');
-          else alert('signup didnt work - backend on?');
+        .catch(async function (err) {
+          console.warn('Backend signup failed, trying local signup:', err);
+          try {
+            if (typeof localBackpackSignup !== 'function') throw new Error('Local auth unavailable.');
+            const res = await localBackpackSignup(name, email, password);
+            closeModal('signupModal');
+            alert('Account created. Hi, ' + res.user.name + '!');
+          } catch (localErr) {
+            alert(localErr && localErr.message ? localErr.message : 'Signup failed.');
+          }
         });
     }
 
