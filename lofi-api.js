@@ -1,6 +1,6 @@
 // lofi playlist logic using youtube iframe player api -yr
 
-const lofiPlaylist = [
+const lofiOriginalPlaylist = [
   { id: '8JqTrT1MYrQ', title: 'Lofi Track 1' },
   { id: 'oZH-BcCb_7Q', title: 'Lofi Track 2' },
   { id: 'DsCJRBpfNtA', title: 'Lofi Track 3' },
@@ -13,9 +13,12 @@ const lofiPlaylist = [
   { id: 'EhCTDvW55fU', title: 'Lofi Track 10' }
 ];
 
+const lofiPlaylist = [...lofiOriginalPlaylist];
+
 let lofiPlayer = null;
 let currentTrack = 0;
 let isLofiPlaying = false;
+let isShuffled = false;
 
 // load the youtube iframe api script -yr
 function loadYTAPI() {
@@ -25,7 +28,17 @@ function loadYTAPI() {
   }
   const tag = document.createElement('script');
   tag.src = 'https://www.youtube.com/iframe_api';
+  tag.onerror = function() {
+    showLofiError('Could not load music player. Check your internet connection.');
+  };
   document.head.appendChild(tag);
+}
+
+function showLofiError(msg) {
+  const titleEl = document.getElementById('lofiTrackTitle');
+  if (titleEl) titleEl.textContent = msg;
+  const playBtn = document.getElementById('lofiPlayBtn');
+  if (playBtn) { playBtn.disabled = true; playBtn.title = msg; }
 }
 
 // youtube api calls this globally when ready -yr
@@ -48,15 +61,16 @@ function initLofiPlayer() {
     },
     events: {
       onReady: onLofiPlayerReady,
-      onStateChange: onLofiStateChange
+      onStateChange: onLofiStateChange,
+      onError: function() { showLofiError('Playback unavailable for this track.'); }
     }
   });
 }
 
 function onLofiPlayerReady() {
-  console.log('lofi player ready, track:', lofiPlaylist[currentTrack].title);
   renderTracklist();
   updateLofiUI();
+  updateShuffleBtnState();
 }
 
 function onLofiStateChange(event) {
@@ -109,13 +123,20 @@ function loadAndPlay(index) {
 }
 
 function shufflePlaylist() {
-  // shuffle -yr
-  for (let i = lofiPlaylist.length - 1; i > 0; i--) {
+  const shuffled = [...lofiOriginalPlaylist];
+  for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [lofiPlaylist[i], lofiPlaylist[j]] = [lofiPlaylist[j], lofiPlaylist[i]];
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  currentTrack = 0;
-  console.log('playlist shuffled');
+  lofiPlaylist.length = 0;
+  shuffled.forEach(t => lofiPlaylist.push(t));
+  isShuffled = true;
+}
+
+function unshufflePlaylist() {
+  lofiPlaylist.length = 0;
+  lofiOriginalPlaylist.forEach(t => lofiPlaylist.push(t));
+  isShuffled = false;
 }
 
 function getCurrentTrackInfo() {
@@ -181,9 +202,20 @@ function handlePrev() {
 }
 
 function handleShuffle() {
-  shufflePlaylist();
+  if (isShuffled) {
+    unshufflePlaylist();
+  } else {
+    shufflePlaylist();
+  }
+  currentTrack = 0;
   renderTracklist();
+  updateShuffleBtnState();
   loadAndPlay(0);
+}
+
+function updateShuffleBtnState() {
+  const btn = document.querySelector('.lofi-ctrl[onclick="handleShuffle()"]');
+  if (btn) btn.style.opacity = isShuffled ? '1' : '0.5';
 }
 
 // start when the dom is ready -yr

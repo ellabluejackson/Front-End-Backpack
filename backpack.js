@@ -234,8 +234,19 @@ function bpDelete(id) {
   }).then(function() {
     bpRender();
   }).catch(function(err) {
-    var msg = err.status ? 'Server error ' + err.status : (err.message || 'Could not delete.');
-    alert('Could not delete: ' + msg);
+    if (err && err.status) {
+      // server responded with an error — don't delete locally
+      alert('Could not delete: Server error ' + err.status);
+    } else {
+      // network unreachable — remove locally so the user isn't stuck
+      bpItems = bpItems.filter(function(i) { return i.id !== id; });
+      if (bpEditingItem && (bpEditingItem.id === id || bpEditingItem.parentId === id)) {
+        bpEditingItem = null;
+        bpView = 'browse';
+      }
+      bpSaveState();
+      bpRender();
+    }
   });
 }
 

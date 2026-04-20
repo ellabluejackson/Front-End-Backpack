@@ -186,10 +186,3 @@ if (typeof window !== 'undefined') {
   window.signup = signup;
   window.me = me;
 }
-
-if (typeof window !== 'undefined') {
-  window.deleteTodo = deleteTodo;
-  window.login = login;
-  window.signup = signup;
-  window.me = me;
-}

@@ -78,6 +78,55 @@
     <!-- ========== home page ========== -->
     <div id="page-home" class="page active">
 
+      <!-- ===== logged-in dashboard ===== -->
+      <div id="homeDashboard" hidden>
+        <div class="dash-wrap">
+
+          <div class="dash-welcome">
+            <div>
+              <h2 class="dash-greeting">👋 Welcome back, <span id="dashUserName">Student</span>!</h2>
+              <p class="dash-date" id="dashDate"></p>
+            </div>
+          </div>
+
+          <div class="dash-quote-card">
+            <p class="dash-quote-icon">💬</p>
+            <p class="dash-quote-text" id="dashQuoteText">Loading quote...</p>
+            <p class="dash-quote-author" id="dashQuoteAuthor"></p>
+          </div>
+
+          <div class="dash-stats-grid">
+            <div class="dash-stat-card">
+              <span class="dash-stat-num" id="dashFolderCount">0</span>
+              <span class="dash-stat-label">📁 Folders</span>
+            </div>
+            <div class="dash-stat-card">
+              <span class="dash-stat-num" id="dashNotebookCount">0</span>
+              <span class="dash-stat-label">📓 Notebooks</span>
+            </div>
+            <div class="dash-stat-card">
+              <span class="dash-stat-num" id="dashCardSetCount">0</span>
+              <span class="dash-stat-label">🃏 Flashcard Sets</span>
+            </div>
+            <div class="dash-stat-card">
+              <span class="dash-stat-num" id="dashTodoActive">0</span>
+              <span class="dash-stat-label">✅ Tasks Left</span>
+            </div>
+          </div>
+
+          <div class="dash-section">
+            <h3 class="dash-section-title">📂 Recent Items</h3>
+            <div id="dashRecentsList" class="dash-recents-list">
+              <p class="dash-empty">No items yet — go pack your backpack!</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ===== marketing (hidden when logged in) ===== -->
+      <div id="homeMarketing">
+
       <!-- Hero Section -->
       <section class="hero">
         <div class="hero-content">
@@ -365,6 +414,7 @@
         </div>
       </section>
 
+      </div><!-- end #homeMarketing -->
     </div><!-- end #page-home -->
 
     <!-- ========== backpack page ========== -->
@@ -463,7 +513,6 @@
     </div>
 
     <!-- ========== to do page ========== -->
-    <!-- CHANGED: replaced empty-state + btn-signup button with actual todo UI -->
     <div id="page-todo" class="page">
       <div class="inner-page-content">
         <p class="page-title">✅ To Do</p>
@@ -1025,6 +1074,131 @@
       }
       renderTodos();
     });
+
+    /* ============================
+       DASHBOARD
+       ============================ */
+    const QUOTE_CACHE_KEY = 'dash_quote_v1';
+
+    function showDashboard(user) {
+      document.getElementById('homeDashboard').removeAttribute('hidden');
+      document.getElementById('homeMarketing').setAttribute('hidden', '');
+
+      document.getElementById('dashUserName').textContent = user.name || 'Student';
+
+      const now = new Date();
+      document.getElementById('dashDate').textContent = now.toLocaleDateString('en-US', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+
+      loadDailyQuote();
+      // defer stats until backpack.js has had a chance to run bpLoadState
+      setTimeout(function() {
+        updateDashStats();
+        updateDashRecents();
+      }, 0);
+    }
+
+    function showMarketing() {
+      document.getElementById('homeDashboard').setAttribute('hidden', '');
+      document.getElementById('homeMarketing').removeAttribute('hidden');
+    }
+
+    function updateDashStats() {
+      if (typeof bpItems === 'undefined') return;
+      document.getElementById('dashFolderCount').textContent =
+        bpItems.filter(function(i) { return i.type === 'folder'; }).length;
+      document.getElementById('dashNotebookCount').textContent =
+        bpItems.filter(function(i) { return i.type === 'notebook'; }).length;
+      document.getElementById('dashCardSetCount').textContent =
+        bpItems.filter(function(i) { return i.type === 'flashcards'; }).length;
+      document.getElementById('dashTodoActive').textContent =
+        todos.filter(function(t) { return !t.done; }).length;
+    }
+
+    function updateDashRecents() {
+      const list = document.getElementById('dashRecentsList');
+      const icons = { folder: '📁', notebook: '📓', flashcards: '🃏' };
+      const items = typeof bpItems !== 'undefined' ? bpItems.slice(-4).reverse() : [];
+
+      if (items.length === 0) {
+        list.innerHTML = '<p class="dash-empty">No items yet — go pack your backpack!</p>';
+        return;
+      }
+
+      list.innerHTML = '';
+      items.forEach(function(item) {
+        const div = document.createElement('div');
+        div.className = 'dash-recent-item';
+        div.innerHTML =
+          '<span class="dash-recent-icon">' + (icons[item.type] || '📄') + '</span>' +
+          '<span>' + item.name + '</span>';
+        div.addEventListener('click', function() {
+          var bpLink = document.querySelector('.toolbar a[onclick*="backpack"]');
+          showPage('backpack', bpLink);
+        });
+        list.appendChild(div);
+      });
+    }
+
+    function loadDailyQuote() {
+      const today = new Date().toDateString();
+      try {
+        const cached = JSON.parse(sessionStorage.getItem(QUOTE_CACHE_KEY) || 'null');
+        if (cached && cached.date === today) {
+          setQuote(cached.text, cached.author);
+          return;
+        }
+      } catch (e) {}
+
+      fetch('https://dummyjson.com/quotes/random')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          const text = data.quote || '';
+          const author = data.author || '';
+          setQuote(text, author);
+          sessionStorage.setItem(QUOTE_CACHE_KEY, JSON.stringify({ date: today, text: text, author: author }));
+        })
+        .catch(function() {
+          const fallbacks = [
+            { text: 'The secret of getting ahead is getting started.', author: 'Mark Twain' },
+            { text: 'It always seems impossible until it\'s done.', author: 'Nelson Mandela' },
+            { text: 'Push yourself, because no one else is going to do it for you.', author: 'Unknown' },
+          ];
+          const q = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+          setQuote(q.text, q.author);
+        });
+    }
+
+    function setQuote(text, author) {
+      document.getElementById('dashQuoteText').textContent = '"' + text + '"';
+      document.getElementById('dashQuoteAuthor').textContent = '— ' + author;
+    }
+
+    // wire up auth changes to show/hide dashboard
+    document.addEventListener('backpack-auth-changed', function(e) {
+      if (e.detail && e.detail.user) {
+        showDashboard(e.detail.user);
+        updateDashStats();
+        updateDashRecents();
+      } else {
+        showMarketing();
+      }
+    });
+
+    // refresh stats whenever user navigates to the home page
+    const _origShowPage = showPage;
+    showPage = function(pageId, linkEl) {
+      const result = _origShowPage(pageId, linkEl);
+      if (pageId === 'home' && typeof window.getBackpackUser === 'function') {
+        const user = window.getBackpackUser();
+        if (user) {
+          updateDashStats();
+          updateDashRecents();
+        }
+      }
+      return result;
+    };
   </script>
 
 </body>

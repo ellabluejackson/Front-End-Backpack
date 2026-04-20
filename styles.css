@@ -323,60 +323,6 @@ main {
   margin-bottom: 32px;
 }
 
-/* =====================
-   empty state - shown when a page has no content yet
-   ===================== */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 24px;
-  text-align: center;
-}
-
-.empty-state .empty-icon {
-  font-size: 4rem;
-  margin-bottom: 20px;
-  opacity: 0.6;
-}
-
-.empty-state h2 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 8px;
-}
-
-.empty-state p {
-  font-size: 0.95rem;
-  color: var(--text-light);
-  max-width: 360px;
-  line-height: 1.6;
-  margin-bottom: 28px;
-}
-
-.btn-add {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--primary);
-  color: #fff !important;
-  border: none;
-  padding: 12px 28px;
-  border-radius: 999px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 14px rgba(108, 99, 255, 0.35);
-  text-decoration: none;
-}
-
-.btn-add:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(108, 99, 255, 0.45);
-}
 
 /* =====================
    hero - the big full-screen intro at the top of the homepage
@@ -2283,4 +2229,137 @@ main {
   max-width: 100%;
   aspect-ratio: 960 / 540;
   height: auto;
+}
+
+/* =====================
+   logged-in dashboard (home page)
+   ===================== */
+.dash-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.dash-welcome {
+  background: linear-gradient(135deg, #6C63FF 0%, #a78bfa 100%);
+  border-radius: var(--radius);
+  padding: 2rem 2rem;
+  color: #fff;
+  margin-bottom: 1.5rem;
+}
+
+.dash-greeting {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+
+.dash-date {
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.dash-quote-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border-left: 4px solid var(--primary);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 12px rgba(108, 99, 255, 0.08);
+}
+
+.dash-quote-icon {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.dash-quote-text {
+  font-size: 1rem;
+  color: var(--text);
+  font-style: italic;
+  line-height: 1.6;
+  margin-bottom: 0.4rem;
+}
+
+.dash-quote-author {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.dash-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dash-stat-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.25rem 1rem;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(108, 99, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.dash-stat-num {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.dash-stat-label {
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+
+.dash-section {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 12px rgba(108, 99, 255, 0.08);
+}
+
+.dash-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.dash-recents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dash-recent-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  background: var(--bg);
+  font-size: 0.9rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dash-recent-item:hover {
+  background: #e8e5ff;
+}
+
+.dash-recent-icon {
+  font-size: 1.1rem;
+}
+
+.dash-empty {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  text-align: center;
+  padding: 1rem 0;
 }
