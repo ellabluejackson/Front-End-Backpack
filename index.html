@@ -834,10 +834,57 @@
        TO-DO LIST
        ============================ */
     let todos = [];
+    let nextId = 1;
+    const TODO_STORAGE_PREFIX = 'todo_data_v1::';
+
+    function getTodoStorageKey() {
+      if (typeof window.getBackpackUser !== 'function') return null;
+      const user = window.getBackpackUser();
+      if (!user || !user.email) return null;
+      return TODO_STORAGE_PREFIX + String(user.email).toLowerCase();
+    }
+
+    function saveTodos() {
+      const key = getTodoStorageKey();
+      if (!key) return;
+      localStorage.setItem(key, JSON.stringify({ todos: todos, nextId: nextId }));
+    }
+
+    function resetTodos() {
+      todos = [];
+      nextId = 1;
+    }
+
+    function loadTodos() {
+      const key = getTodoStorageKey();
+      if (!key) {
+        resetTodos();
+        return;
+      }
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) {
+          resetTodos();
+          return;
+        }
+        const parsed = JSON.parse(raw);
+        todos = Array.isArray(parsed.todos) ? parsed.todos : [];
+        nextId = Number.isFinite(parsed.nextId) ? parsed.nextId : (todos.length + 1);
+      } catch (e) {
+        resetTodos();
+      }
+    }
 
     function loadTodosFromBackend() {
+      if (typeof getTodos !== 'function') return Promise.resolve();
       return getTodos().then(function(list) {
         todos = list.map(function(t) { return { id: t.id, text: t.text, done: !!t.done }; });
+        nextId = todos.reduce(function(m, t) { return Math.max(m, Number(t.id) || 0); }, 0) + 1;
+        saveTodos();
+        renderTodos();
+      }).catch(function(err) {
+        console.warn('Todo backend load failed, using local data', err);
+        loadTodos();
         renderTodos();
       });
     }
@@ -851,14 +898,26 @@
         setTimeout(() => input.classList.remove('todo-input--error'), 600);
         return;
       }
+      const addLocal = function() {
+        todos.push({ id: nextId++, text: text, done: false });
+        saveTodos();
+        input.value = '';
+        input.focus();
+        renderTodos();
+      };
+      if (typeof createTodo !== 'function') {
+        addLocal();
+        return;
+      }
       createTodo({ text: text }).then(function(t) {
         todos.push({ id: t.id, text: t.text, done: !!t.done });
+        saveTodos();
         input.value = '';
         input.focus();
         renderTodos();
       }).catch(function(err) {
-        console.error('Could not add todo', err);
-        alert('Could not add task. Is the backend running?');
+        console.warn('Could not add todo to backend, saving locally', err);
+        addLocal();
       });
     }
 
@@ -866,23 +925,38 @@
       const todo = todos.find(t => t.id === id);
       if (!todo) return;
       const newDone = !todo.done;
-      updateTodo(id, { done: newDone }).then(function() {
+      const applyLocalToggle = function() {
         todo.done = newDone;
+        saveTodos();
         renderTodos();
-      }).catch(function(err) { console.error('Could not update todo', err); });
+      };
+      if (typeof updateTodo !== 'function' || String(id).indexOf('bp_') === 0) {
+        applyLocalToggle();
+        return;
+      }
+      updateTodo(id, { done: newDone }).then(function() {
+        applyLocalToggle();
+      }).catch(function(err) {
+        console.warn('Could not update todo on backend, updating locally', err);
+        applyLocalToggle();
+      });
     }
 
     function handleDeleteTodo(id) {
-      if (typeof window.deleteTodo !== 'function') {
-        alert('API not loaded. Refresh the page.');
+      const removeLocal = function() {
+        todos = todos.filter(t => t.id !== id);
+        saveTodos();
+        renderTodos();
+      };
+      if (typeof window.deleteTodo !== 'function' || String(id).indexOf('bp_') === 0) {
+        removeLocal();
         return;
       }
       window.deleteTodo(id).then(function() {
-        todos = todos.filter(t => t.id !== id);
-        renderTodos();
+        removeLocal();
       }).catch(function(err) {
-        console.error('Could not delete todo', err);
-        alert('Could not delete task. Is the backend running?');
+        console.warn('Could not delete todo on backend, deleting locally', err);
+        removeLocal();
       });
     }
 

@@ -168,6 +168,14 @@ function bpLoadFromBackend() {
   });
 }
 
+function bpBackendReady() {
+  return typeof createFolder === 'function' &&
+    typeof createNote === 'function' &&
+    typeof updateNote === 'function' &&
+    typeof deleteFolder === 'function' &&
+    typeof deleteNote === 'function';
+}
+
 // -- crud -yr --
 
 function bpCreate(type, name, parentId) {
@@ -187,6 +195,26 @@ function bpCreate(type, name, parentId) {
 function bpDelete(id) {
   var item = bpFind(id);
   if (!item) return;
+  if (!bpBackendReady()) {
+    var toDelete = [id];
+    function gather(pid) {
+      bpItems.forEach(function(i) {
+        if (i.parentId === pid) {
+          toDelete.push(i.id);
+          gather(i.id);
+        }
+      });
+    }
+    gather(id);
+    bpItems = bpItems.filter(function(i) { return toDelete.indexOf(i.id) === -1; });
+    if (bpEditingItem && toDelete.indexOf(bpEditingItem.id) !== -1) {
+      bpEditingItem = null;
+      bpView = 'browse';
+    }
+    bpSaveState();
+    bpRender();
+    return;
+  }
   var p = null;
   if (item.type === 'folder') {
     p = deleteFolder(Number(item.id));
@@ -310,6 +338,10 @@ function bpPromptCreate(type) {
   name = (name && name.trim()) ? name.trim() : 'Untitled';
 
   var parentId = numId(bpCurrentFolder);
+  if (!bpBackendReady()) {
+    bpCreate(type, name, bpCurrentFolder);
+    return;
+  }
   var p = null;
   if (type === 'folder' || type === 'flashcards') {
     p = createFolder({ name: name, parent_id: parentId, is_flashcard_set: type === 'flashcards' });
@@ -319,10 +351,11 @@ function bpPromptCreate(type) {
   p.then(function() {
     return bpLoadFromBackend();
   }).then(function() {
+    bpSaveState();
     bpRender();
   }).catch(function(err) {
-    var msg = err.status ? 'Server error ' + err.status + '. Is the backend running?' : (err.message || 'Could not create.');
-    alert('Could not create: ' + msg);
+    // fallback to local create when backend is unavailable
+    bpCreate(type, name, bpCurrentFolder);
   });
 }
 
@@ -442,6 +475,8 @@ function bpSaveNotebook() {
     bpEditingItem.name = (bpEditingItem.name && bpEditingItem.name.trim()) ? bpEditingItem.name.trim() : 'Untitled';
   }
   if (!bpEditingItem || bpEditingItem.type !== 'notebook') return;
+  bpSaveState();
+  if (!bpBackendReady() || !bpEditingItem._noteId) return;
   updateNote(bpEditingItem._noteId, {
     title: bpEditingItem.name,
     content: bpEditingItem.content || '',
@@ -505,6 +540,8 @@ function bpRenderCards(app) {
 
 function bpSaveCards() {
   if (!bpEditingItem || bpEditingItem.type !== 'flashcards') return;
+  bpSaveState();
+  if (!bpBackendReady() || !bpEditingItem._folderId) return;
   var fid = bpEditingItem._folderId;
   bpEditingItem.content.forEach(function(card) {
     if (card.id) {
@@ -515,30 +552,47 @@ function bpSaveCards() {
 
 function bpAddCard() {
   if (!bpEditingItem || bpEditingItem.type !== 'flashcards') return;
+  if (!bpBackendReady() || !bpEditingItem._folderId) {
+    bpEditingItem.content.push({ id: bpId(), question: '', answer: '' });
+    bpSaveState();
+    bpRender();
+    setTimeout(function() {
+      var inputs = document.querySelectorAll('.bp-card-input[data-side="question"]');
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    }, 50);
+    return;
+  }
   createFlashcard({ front: '', back: '', folder_id: bpEditingItem._folderId }).then(function(res) {
     bpEditingItem.content.push({ id: res.id, question: res.front, answer: res.back });
+    bpSaveState();
     bpRender();
     setTimeout(function() {
       var inputs = document.querySelectorAll('.bp-card-input[data-side="question"]');
       if (inputs.length) inputs[inputs.length - 1].focus();
     }, 50);
   }).catch(function(err) {
-    alert('Could not add card: ' + (err.message || 'Server error'));
+    bpEditingItem.content.push({ id: bpId(), question: '', answer: '' });
+    bpSaveState();
+    bpRender();
   });
 }
 
 function bpDeleteCard(index) {
   if (!bpEditingItem) return;
   var card = bpEditingItem.content[index];
-  if (card && card.id) {
+  if (bpBackendReady() && bpEditingItem._folderId && card && card.id && String(card.id).indexOf('bp_') !== 0) {
     deleteFlashcard(card.id).then(function() {
       bpEditingItem.content.splice(index, 1);
+      bpSaveState();
       bpRender();
     }).catch(function(err) {
-      alert('Could not delete card: ' + (err.message || 'Server error'));
+      bpEditingItem.content.splice(index, 1);
+      bpSaveState();
+      bpRender();
     });
   } else {
     bpEditingItem.content.splice(index, 1);
+    bpSaveState();
     bpRender();
   }
 }
