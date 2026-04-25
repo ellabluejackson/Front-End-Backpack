@@ -178,13 +178,14 @@ function bpBackendReady() {
 
 // -- crud -yr --
 
-function bpCreate(type, name, parentId) {
+function bpCreate(type, name, parentId, emoji) {
   var item = {
     id: bpId(),
     type: type,
     name: (name && name.trim()) ? name.trim() : 'Untitled',
     parentId: parentId === undefined ? bpCurrentFolder : parentId,
-    content: type === 'flashcards' ? [] : ''
+    content: type === 'flashcards' ? [] : '',
+    emoji: emoji || null
   };
   bpItems.push(item);
   bpSaveState();
@@ -348,9 +349,17 @@ function bpPromptCreate(type) {
   if (name === null) return;
   name = (name && name.trim()) ? name.trim() : 'Untitled';
 
+  if (type === 'folder') {
+    bpPickEmoji(function(emoji) { bpDoCreate(type, name, emoji); });
+  } else {
+    bpDoCreate(type, name, null);
+  }
+}
+
+function bpDoCreate(type, name, emoji) {
   var parentId = numId(bpCurrentFolder);
   if (!bpBackendReady()) {
-    bpCreate(type, name, bpCurrentFolder);
+    bpCreate(type, name, bpCurrentFolder, emoji);
     return;
   }
   var p = null;
@@ -364,10 +373,55 @@ function bpPromptCreate(type) {
   }).then(function() {
     bpSaveState();
     bpRender();
-  }).catch(function(err) {
-    // fallback to local create when backend is unavailable
-    bpCreate(type, name, bpCurrentFolder);
+  }).catch(function() {
+    bpCreate(type, name, bpCurrentFolder, emoji);
   });
+}
+
+function bpPickEmoji(callback) {
+  var emojis = ['📁','📚','📖','📝','✏️','🔬','🔭','🎨','🎯','🏆','⭐','💡','🧪','🌍','🎭','🎵','🖥️','🚀','⚡','🎮','🌟','💎','🔥','🦄','🌈','🐉','🦋','🍎','🏃','📐'];
+
+  var overlay = document.createElement('div');
+  overlay.className = 'bp-emoji-overlay';
+
+  var box = document.createElement('div');
+  box.className = 'bp-emoji-picker';
+
+  var title = document.createElement('p');
+  title.className = 'bp-emoji-title';
+  title.textContent = 'Pick a folder emoji';
+
+  var grid = document.createElement('div');
+  grid.className = 'bp-emoji-grid';
+
+  emojis.forEach(function(e) {
+    var btn = document.createElement('button');
+    btn.className = 'bp-emoji-btn';
+    btn.textContent = e;
+    btn.addEventListener('click', function() {
+      document.body.removeChild(overlay);
+      callback(e);
+    });
+    grid.appendChild(btn);
+  });
+
+  var skip = document.createElement('button');
+  skip.className = 'bp-emoji-skip';
+  skip.textContent = 'No emoji (use default 📁)';
+  skip.addEventListener('click', function() {
+    document.body.removeChild(overlay);
+    callback(null);
+  });
+
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) { document.body.removeChild(overlay); callback(null); }
+  });
+
+  box.appendChild(title);
+  box.appendChild(grid);
+  box.appendChild(skip);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
 }
 
 // close add menu on outside click -yr
@@ -430,7 +484,7 @@ function bpRenderBrowse(app) {
       var safeId = String(item.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
       html += '<div class="bp-item" onclick="bpOpen(\'' + safeId + '\')">';
       html += '<div class="bp-item-top">';
-      html += '<span class="bp-item-icon">' + icons[item.type] + '</span>';
+      html += '<span class="bp-item-icon">' + (item.emoji || icons[item.type]) + '</span>';
       html += '<button type="button" class="bp-item-delete" onclick="bpDeleteClick(event,\'' + safeId + '\')" title="Delete">🗑️</button>';
       html += '</div>';
       html += '<span class="bp-item-name">' + escHtml(item.name) + '</span>';

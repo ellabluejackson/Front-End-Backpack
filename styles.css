@@ -2225,6 +2225,76 @@ main {
   margin-bottom: 1rem;
 }
 
+/* =====================
+   emoji picker modal (folder creation)
+   ===================== */
+.bp-emoji-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bp-emoji-picker {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  max-width: 340px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.bp-emoji-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.bp-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.bp-emoji-btn {
+  background: var(--bg);
+  border: none;
+  border-radius: 8px;
+  font-size: 1.4rem;
+  padding: 0.4rem;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.bp-emoji-btn:hover {
+  background: #e8e5ff;
+  transform: scale(1.2);
+}
+
+.bp-emoji-skip {
+  display: block;
+  width: 100%;
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.bp-emoji-skip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
 .game-container iframe {
   max-width: 100%;
   aspect-ratio: 960 / 540;

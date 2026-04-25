@@ -112,6 +112,10 @@
               <span class="dash-stat-num" id="dashTodoActive">0</span>
               <span class="dash-stat-label">✅ Tasks Left</span>
             </div>
+            <div class="dash-stat-card">
+              <span class="dash-stat-num" id="dashStreak">0</span>
+              <span class="dash-stat-label">🔥 Day Streak</span>
+            </div>
           </div>
 
           <div class="dash-section">
@@ -1079,6 +1083,26 @@
        DASHBOARD
        ============================ */
     const QUOTE_CACHE_KEY = 'dash_quote_v1';
+    const STREAK_PREFIX = 'backpack_streak_v1::';
+
+    function updateStreak(email) {
+      const key = STREAK_PREFIX + email.toLowerCase();
+      const today = new Date().toDateString();
+      let data = { count: 0, lastDate: null };
+      try { data = JSON.parse(localStorage.getItem(key)) || data; } catch(e) {}
+
+      if (data.lastDate === today) {
+        // already visited today, no change
+      } else if (data.lastDate === new Date(Date.now() - 86400000).toDateString()) {
+        data.count += 1;
+        data.lastDate = today;
+      } else {
+        data.count = 1;
+        data.lastDate = today;
+      }
+      localStorage.setItem(key, JSON.stringify(data));
+      return data.count;
+    }
 
     function showDashboard(user) {
       document.getElementById('homeDashboard').removeAttribute('hidden');
@@ -1092,6 +1116,7 @@
       });
 
       loadDailyQuote();
+      document.getElementById('dashStreak').textContent = updateStreak(user.email);
       // defer stats until backpack.js has had a chance to run bpLoadState
       setTimeout(function() {
         updateDashStats();
