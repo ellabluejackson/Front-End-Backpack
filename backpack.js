@@ -106,6 +106,113 @@ function numId(v) {
   return isNaN(n) ? null : n;
 }
 
+// -- notebook document (pages / entries + last edited) -yr --
+var BP_NOTEBOOK_DOC_V = 1;
+
+function bpNowIso() {
+  return new Date().toISOString();
+}
+
+function bpFormatEditedAt(iso) {
+  if (!iso) return '';
+  try {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    var nowY = new Date().getFullYear();
+    var optsDate = { month: 'short', day: 'numeric' };
+    if (d.getFullYear() !== nowY) optsDate.year = 'numeric';
+    return d.toLocaleDateString(undefined, optsDate) + ', ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  } catch (e) {
+    return '';
+  }
+}
+
+function bpNewNotebookDoc() {
+  var pid = bpId();
+  return {
+    v: BP_NOTEBOOK_DOC_V,
+    pages: [{ id: pid, title: 'Notes', content: '', updatedAt: bpNowIso() }],
+    activePageId: pid
+  };
+}
+
+function bpNormalizeNotebookDoc(doc, fallbackTime) {
+  var ft = fallbackTime || bpNowIso();
+  var pages = (doc.pages || []).map(function(p) {
+    return {
+      id: p.id || bpId(),
+      title: (p.title && String(p.title).trim()) ? String(p.title).trim() : 'Untitled',
+      content: typeof p.content === 'string' ? p.content : '',
+      updatedAt: p.updatedAt || ft
+    };
+  });
+  if (!pages.length) {
+    return bpNewNotebookDoc();
+  }
+  var active = doc.activePageId;
+  if (!active || !pages.some(function(p) { return p.id === active; })) {
+    active = pages[0].id;
+  }
+  return { v: BP_NOTEBOOK_DOC_V, pages: pages, activePageId: active };
+}
+
+function bpMigrateNotebookContent(raw, defaultUpdatedAt) {
+  var fallbackTime = defaultUpdatedAt || bpNowIso();
+  if (raw == null || raw === '') {
+    return bpNewNotebookDoc();
+  }
+  if (typeof raw === 'object' && raw !== null && Array.isArray(raw.pages)) {
+    return bpNormalizeNotebookDoc(raw, fallbackTime);
+  }
+  if (typeof raw === 'string') {
+    var s = raw.trim();
+    if (s.charAt(0) === '{') {
+      try {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.v === BP_NOTEBOOK_DOC_V && Array.isArray(parsed.pages)) {
+          return bpNormalizeNotebookDoc(parsed, fallbackTime);
+        }
+      } catch (e) { /* treat as plain text */ }
+    }
+    var id = bpId();
+    return {
+      v: BP_NOTEBOOK_DOC_V,
+      pages: [{ id: id, title: 'Notes', content: raw, updatedAt: fallbackTime }],
+      activePageId: id
+    };
+  }
+  return bpNewNotebookDoc();
+}
+
+function bpNotebookPageById(doc, id) {
+  return doc.pages.find(function(p) { return p.id === id; });
+}
+
+function bpNotebookMaxUpdatedAt(doc) {
+  if (!doc || !doc.pages || !doc.pages.length) return null;
+  var best = null;
+  doc.pages.forEach(function(p) {
+    var t = p.updatedAt;
+    if (!t) return;
+    if (!best || new Date(t) > new Date(best)) best = t;
+  });
+  return best;
+}
+
+function bpSerializeNotebookForApi(doc) {
+  return JSON.stringify({ v: doc.v, pages: doc.pages, activePageId: doc.activePageId });
+}
+
+function bpEnsureNotebookDoc(item) {
+  if (!item || item.type !== 'notebook') return null;
+  if (typeof item.content === 'object' && item.content !== null && Array.isArray(item.content.pages)) {
+    item.content = bpNormalizeNotebookDoc(item.content, bpNowIso());
+    return item.content;
+  }
+  item.content = bpMigrateNotebookContent(item.content, item._noteUpdatedAt);
+  return item.content;
+}
+
 // Load from backend and build bpItems
 function bpBuildItems(folders, notes, flashcards) {
   var items = [];
@@ -149,13 +256,15 @@ function bpBuildItems(folders, notes, flashcards) {
     }
   });
   notes.forEach(function(n) {
+    var updated = n.updated_at != null ? n.updated_at : n.updatedAt;
     items.push({
       id: 'note_' + n.id,
       _noteId: n.id,
+      _noteUpdatedAt: updated,
       type: 'notebook',
       name: n.title,
       parentId: toParentId(n.folder_id),
-      content: n.content || ''
+      content: bpMigrateNotebookContent(n.content, updated)
     });
   });
   bpItems = items;
@@ -184,7 +293,7 @@ function bpCreate(type, name, parentId, emoji) {
     type: type,
     name: (name && name.trim()) ? name.trim() : 'Untitled',
     parentId: parentId === undefined ? bpCurrentFolder : parentId,
-    content: type === 'flashcards' ? [] : '',
+    content: type === 'flashcards' ? [] : (type === 'notebook' ? bpNewNotebookDoc() : ''),
     emoji: emoji || null
   };
   bpItems.push(item);
@@ -366,7 +475,7 @@ function bpDoCreate(type, name, emoji) {
   if (type === 'folder' || type === 'flashcards') {
     p = createFolder({ name: name, parent_id: parentId, is_flashcard_set: type === 'flashcards' });
   } else {
-    p = createNote({ title: name, content: '', folder_id: parentId });
+    p = createNote({ title: name, content: bpSerializeNotebookForApi(bpNewNotebookDoc()), folder_id: parentId });
   }
   p.then(function() {
     return bpLoadFromBackend();
@@ -489,6 +598,13 @@ function bpRenderBrowse(app) {
       html += '</div>';
       html += '<span class="bp-item-name">' + escHtml(item.name) + '</span>';
       html += '<span class="bp-item-type">' + labels[item.type] + '</span>';
+      if (item.type === 'notebook') {
+        var ndoc = bpEnsureNotebookDoc(item);
+        var lastIso = bpNotebookMaxUpdatedAt(ndoc);
+        if (lastIso) {
+          html += '<span class="bp-item-meta">Last edited ' + escHtml(bpFormatEditedAt(lastIso)) + '</span>';
+        }
+      }
       html += '</div>';
     });
     html += '</div>';
@@ -509,46 +625,203 @@ function bpRenderBrowse(app) {
   app.innerHTML = html;
 }
 
-// -- notebook editor -yr --
+// -- notebook editor (pages + last edited) -yr --
+
+function bpSyncNotebookFromDom(touchUpdatedAt) {
+  var item = bpEditingItem;
+  if (!item || item.type !== 'notebook') return;
+  var doc = bpEnsureNotebookDoc(item);
+  var area = document.getElementById('bpNotebookArea');
+  var active = bpNotebookPageById(doc, doc.activePageId);
+  if (area && active) {
+    active.content = area.value;
+    if (touchUpdatedAt) active.updatedAt = bpNowIso();
+  }
+}
+
+function bpPushNotebookToBackend() {
+  var item = bpEditingItem;
+  if (!item || item.type !== 'notebook') return;
+  bpSaveState();
+  if (!bpBackendReady() || !item._noteId) return;
+  var doc = bpEnsureNotebookDoc(item);
+  updateNote(item._noteId, {
+    title: item.name,
+    content: bpSerializeNotebookForApi(doc),
+    folder_id: numId(item.parentId)
+  }).catch(function(err) {
+    console.error('Could not save note', err);
+  });
+}
+
+var bpNotebookBackendTimer = null;
+function bpScheduleNotebookBackendSave() {
+  if (!bpEditingItem || bpEditingItem.type !== 'notebook') return;
+  if (bpNotebookBackendTimer) clearTimeout(bpNotebookBackendTimer);
+  bpNotebookBackendTimer = setTimeout(function() {
+    bpNotebookBackendTimer = null;
+    if (!bpEditingItem || bpEditingItem.type !== 'notebook') return;
+    bpSyncNotebookFromDom(false);
+    bpPushNotebookToBackend();
+  }, 1200);
+}
+
+function bpSelectNotebookPage(pageId) {
+  if (!bpEditingItem || bpEditingItem.type !== 'notebook') return;
+  bpSyncNotebookFromDom(false);
+  var doc = bpEnsureNotebookDoc(bpEditingItem);
+  if (!bpNotebookPageById(doc, pageId)) return;
+  doc.activePageId = pageId;
+  bpSaveState();
+  bpRender();
+}
+
+function bpAddNotebookPage() {
+  if (!bpEditingItem || bpEditingItem.type !== 'notebook') return;
+  bpSyncNotebookFromDom(false);
+  var doc = bpEnsureNotebookDoc(bpEditingItem);
+  var nid = bpId();
+  doc.pages.push({ id: nid, title: 'Untitled', content: '', updatedAt: bpNowIso() });
+  doc.activePageId = nid;
+  bpSaveState();
+  bpPushNotebookToBackend();
+  bpRender();
+}
+
+function bpDeleteNotebookPage(pageId) {
+  if (!bpEditingItem || bpEditingItem.type !== 'notebook') return;
+  var doc = bpEnsureNotebookDoc(bpEditingItem);
+  if (doc.pages.length <= 1) {
+    alert('Keep at least one entry in this notebook.');
+    return;
+  }
+  bpSyncNotebookFromDom(false);
+  if (!confirm('Delete this entry?')) return;
+  var idx = doc.pages.findIndex(function(p) { return p.id === pageId; });
+  if (idx === -1) return;
+  doc.pages.splice(idx, 1);
+  if (doc.activePageId === pageId) {
+    doc.activePageId = doc.pages[0].id;
+  }
+  bpSaveState();
+  bpPushNotebookToBackend();
+  bpRender();
+}
+
+function bpPageRowClick(ev, pageId) {
+  if (ev.target.closest('.bp-page-title-input') || ev.target.closest('.bp-page-delete')) return;
+  bpSelectNotebookPage(pageId);
+}
 
 function bpRenderNotebook(app) {
   var item = bpEditingItem;
+  var doc = bpEnsureNotebookDoc(item);
+  var active = bpNotebookPageById(doc, doc.activePageId) || doc.pages[0];
   var html = '';
 
   html += '<div class="bp-editor-header">';
-  html += '<button class="bp-back-btn" onclick="bpSaveNotebook(); bpGoBack()">← Back</button>';
+  html += '<button type="button" class="bp-back-btn" onclick="bpSaveNotebook(); bpGoBack()">← Back</button>';
   html += '<span class="bp-editor-title">📓 ' + escHtml(item.name) + '</span>';
   html += '</div>';
-  html += '<textarea class="bp-notebook-area" id="bpNotebookArea" placeholder="Start typing your notes...">' + escHtml(item.content) + '</textarea>';
+
+  html += '<div class="bp-notebook-layout">';
+  html += '<aside class="bp-notebook-sidebar" aria-label="Notebook pages">';
+  html += '<div class="bp-notebook-sidebar-head">Entries</div>';
+  html += '<button type="button" class="bp-page-add-btn" onclick="bpAddNotebookPage()">+ New entry</button>';
+  html += '<ul class="bp-page-list">';
+  doc.pages.forEach(function(page) {
+    var safePid = String(page.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    var isActive = page.id === doc.activePageId;
+    html += '<li class="bp-page-item' + (isActive ? ' bp-page-item--active' : '') + '" onclick="bpPageRowClick(event,\'' + safePid + '\')">';
+    html += '<div class="bp-page-item-row">';
+    html += '<span class="bp-page-date">' + escHtml(bpFormatEditedAt(page.updatedAt) || '—') + '</span>';
+    if (doc.pages.length > 1) {
+      html += '<button type="button" class="bp-page-delete" onclick="event.stopPropagation(); bpDeleteNotebookPage(\'' + safePid + '\')" title="Delete entry">🗑️</button>';
+    }
+    html += '</div>';
+    html += '<input type="text" class="bp-page-title-input" data-page-id="' + escAttr(page.id) + '" value="' + escAttr(page.title) + '" placeholder="Entry title" onclick="event.stopPropagation()" aria-label="Entry title">';
+    html += '</li>';
+  });
+  html += '</ul>';
+  html += '</aside>';
+
+  html += '<div class="bp-notebook-main">';
+  html += '<div class="bp-page-meta">Last edited: <span id="bpPageEditedLabel">' + escHtml(bpFormatEditedAt(active.updatedAt)) + '</span></div>';
+  html += '<textarea class="bp-notebook-area" id="bpNotebookArea" placeholder="Write this entry…">' + escHtml(active.content || '') + '</textarea>';
+  html += '</div>';
+  html += '</div>';
 
   app.innerHTML = html;
 
   var area = document.getElementById('bpNotebookArea');
   if (area) {
     area.addEventListener('input', function() {
-      item.content = area.value;
-      bpSaveState();
+      var d = bpEnsureNotebookDoc(item);
+      var pg = bpNotebookPageById(d, d.activePageId);
+      if (pg) {
+        pg.content = area.value;
+        pg.updatedAt = bpNowIso();
+        bpSaveState();
+        var label = document.getElementById('bpPageEditedLabel');
+        if (label) label.textContent = bpFormatEditedAt(pg.updatedAt);
+        bpScheduleNotebookBackendSave();
+      }
     });
     area.focus();
+  }
+
+  document.querySelectorAll('.bp-page-title-input').forEach(function(inp) {
+    inp.addEventListener('focus', function() {
+      var pid = this.getAttribute('data-page-id');
+      var d = bpEnsureNotebookDoc(item);
+      if (d.activePageId !== pid) {
+        item._pendingTitleFocus = pid;
+        bpSelectNotebookPage(pid);
+      }
+    });
+    inp.addEventListener('input', function() {
+      var pid = this.getAttribute('data-page-id');
+      var d = bpEnsureNotebookDoc(item);
+      var pg = bpNotebookPageById(d, pid);
+      if (pg) {
+        pg.title = this.value.trim() ? this.value.trim() : 'Untitled';
+        pg.updatedAt = bpNowIso();
+        bpSaveState();
+        bpScheduleNotebookBackendSave();
+      }
+    });
+  });
+
+  var pf = item._pendingTitleFocus;
+  if (pf) {
+    item._pendingTitleFocus = null;
+    setTimeout(function() {
+      var q = '.bp-page-title-input[data-page-id="' + String(pf).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"]';
+      var el = document.querySelector(q);
+      if (el) el.focus();
+    }, 0);
   }
 }
 
 function bpSaveNotebook() {
-  var area = document.getElementById('bpNotebookArea');
-  if (area && bpEditingItem) {
-    bpEditingItem.content = area.value;
-    bpEditingItem.name = (bpEditingItem.name && bpEditingItem.name.trim()) ? bpEditingItem.name.trim() : 'Untitled';
-  }
   if (!bpEditingItem || bpEditingItem.type !== 'notebook') return;
-  bpSaveState();
-  if (!bpBackendReady() || !bpEditingItem._noteId) return;
-  updateNote(bpEditingItem._noteId, {
-    title: bpEditingItem.name,
-    content: bpEditingItem.content || '',
-    folder_id: numId(bpEditingItem.parentId)
-  }).catch(function(err) {
-    console.error('Could not save note', err);
+  if (bpNotebookBackendTimer) {
+    clearTimeout(bpNotebookBackendTimer);
+    bpNotebookBackendTimer = null;
+  }
+  bpSyncNotebookFromDom(false);
+  var doc = bpEnsureNotebookDoc(bpEditingItem);
+  document.querySelectorAll('.bp-page-title-input').forEach(function(inp) {
+    var pid = inp.getAttribute('data-page-id');
+    var pg = bpNotebookPageById(doc, pid);
+    if (pg) {
+      pg.title = inp.value.trim() ? inp.value.trim() : 'Untitled';
+    }
   });
+  var active = bpNotebookPageById(doc, doc.activePageId);
+  if (active) active.updatedAt = bpNowIso();
+  bpEditingItem.name = (bpEditingItem.name && bpEditingItem.name.trim()) ? bpEditingItem.name.trim() : 'Untitled';
+  bpPushNotebookToBackend();
 }
 
 // -- flashcard editor -yr --
