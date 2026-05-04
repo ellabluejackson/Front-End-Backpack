@@ -73,7 +73,7 @@
     window.location.reload();
   };
 
-  
+  /** Call after successful /auth/login or /auth/signup (backend) so header matches */
   window.applyBackpackApiUser = function (user) {
     if (!user || !user.email) return;
     setSession({ email: user.email, name: user.name || 'Student' });
@@ -109,6 +109,142 @@
     );
   }
   window.updateAuthUI = updateAuthUI;
+
+  /*  messages (no browser “localhost …” dialogs) ---- */
+  var appToastTimer = null;
+  var sheetResolve = null;
+  var sheetMode = 'confirm';
+
+  function ensureAppToast() {
+    var el = document.getElementById('appToast');
+    if (el) return el;
+    el = document.createElement('div');
+    el.id = 'appToast';
+    el.className = 'app-toast';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.setAttribute('hidden', '');
+    document.body.insertBefore(el, document.body.firstChild);
+    return el;
+  }
+
+  window.showAppToast = function (message, variant) {
+    var el = ensureAppToast();
+    if (!message) return;
+    el.textContent = message;
+    el.className = 'app-toast' + (variant === 'error' ? ' app-toast--error' : '');
+    el.removeAttribute('hidden');
+    if (appToastTimer) clearTimeout(appToastTimer);
+    appToastTimer = setTimeout(function () {
+      el.setAttribute('hidden', '');
+      appToastTimer = null;
+    }, 4200);
+  };
+
+  function wireAppSheetOnce(ov) {
+    if (ov.dataset.wired === '1') return;
+    ov.dataset.wired = '1';
+    var input = ov.querySelector('#appSheetInput');
+    var cancel = ov.querySelector('#appSheetCancel');
+    var ok = ov.querySelector('#appSheetOk');
+    function finish(value) {
+      ov.setAttribute('hidden', '');
+      document.body.style.overflow = '';
+      if (input) {
+        input.classList.remove('app-sheet-input--show');
+        input.setAttribute('hidden', '');
+      }
+      var fn = sheetResolve;
+      sheetResolve = null;
+      if (fn) fn(value);
+    }
+    cancel.addEventListener('click', function () {
+      finish(sheetMode === 'prompt' ? null : false);
+    });
+    ok.addEventListener('click', function () {
+      if (sheetMode === 'prompt' && input) {
+        var v = input.value;
+        finish(v != null && String(v).trim() ? String(v).trim() : 'Untitled');
+      } else {
+        finish(true);
+      }
+    });
+    ov.addEventListener('click', function (e) {
+      if (e.target === ov) finish(sheetMode === 'prompt' ? null : false);
+    });
+    document.addEventListener('keydown', function onKey(e) {
+      if (!ov || ov.hasAttribute('hidden')) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        finish(sheetMode === 'prompt' ? null : false);
+      } else if (e.key === 'Enter' && sheetMode === 'prompt' && document.activeElement === input) {
+        e.preventDefault();
+        var v = input.value;
+        finish(v != null && String(v).trim() ? String(v).trim() : 'Untitled');
+      }
+    });
+  }
+
+  function ensureAppSheet() {
+    var ov = document.getElementById('appSheetOverlay');
+    if (ov) return ov;
+    ov = document.createElement('div');
+    ov.id = 'appSheetOverlay';
+    ov.className = 'app-sheet-overlay';
+    ov.setAttribute('hidden', '');
+    ov.innerHTML =
+      '<div class="app-sheet" role="dialog" aria-modal="true">' +
+      '<p id="appSheetText" class="app-sheet-text"></p>' +
+      '<input type="text" id="appSheetInput" class="app-sheet-input" hidden />' +
+      '<div class="app-sheet-actions">' +
+      '<button type="button" class="app-sheet-btn app-sheet-btn--ghost" id="appSheetCancel">Cancel</button>' +
+      '<button type="button" class="app-sheet-btn app-sheet-btn--primary" id="appSheetOk">OK</button>' +
+      '</div></div>';
+    document.body.appendChild(ov);
+    wireAppSheetOnce(ov);
+    return ov;
+  }
+
+  window.showAppConfirm = function (message) {
+    return new Promise(function (resolve) {
+      var ov = ensureAppSheet();
+      var input = ov.querySelector('#appSheetInput');
+      var text = ov.querySelector('#appSheetText');
+      sheetMode = 'confirm';
+      sheetResolve = resolve;
+      text.textContent = message || '';
+      if (input) {
+        input.classList.remove('app-sheet-input--show');
+        input.setAttribute('hidden', '');
+      }
+      ov.removeAttribute('hidden');
+      document.body.style.overflow = 'hidden';
+    });
+  };
+
+  window.showAppPrompt = function (message, defaultValue) {
+    return new Promise(function (resolve) {
+      var ov = ensureAppSheet();
+      var input = ov.querySelector('#appSheetInput');
+      var text = ov.querySelector('#appSheetText');
+      sheetMode = 'prompt';
+      sheetResolve = resolve;
+      text.textContent = message || '';
+      if (input) {
+        input.value = defaultValue != null ? String(defaultValue) : '';
+        input.removeAttribute('hidden');
+        input.classList.add('app-sheet-input--show');
+        setTimeout(function () {
+          try {
+            input.focus();
+            input.select();
+          } catch (e) {}
+        }, 50);
+      }
+      ov.removeAttribute('hidden');
+      document.body.style.overflow = 'hidden';
+    });
+  };
 
   /** Used by accountcreate.html */
   window.registerBackpackAccount = async function (name, email, password) {
