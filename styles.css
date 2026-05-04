@@ -2232,7 +2232,7 @@ main {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
-  z-index: 2000;
+  z-index: 100002;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2302,134 +2302,103 @@ main {
 }
 
 /* =====================
-   logged-in dashboard (home page)
+   in-app toast + sheet (replaces alert/confirm/prompt — no “localhost…”)
    ===================== */
-.dash-wrap {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
-}
-
-.dash-welcome {
-  background: linear-gradient(135deg, #6C63FF 0%, #a78bfa 100%);
-  border-radius: var(--radius);
-  padding: 2rem 2rem;
-  color: #fff;
-  margin-bottom: 1.5rem;
-}
-
-.dash-greeting {
-  font-size: 1.6rem;
-  font-weight: 800;
-  margin-bottom: 0.25rem;
-}
-
-.dash-date {
-  font-size: 0.95rem;
-  opacity: 0.85;
-}
-
-.dash-quote-card {
-  background: var(--surface);
-  border-radius: var(--radius);
-  border-left: 4px solid var(--primary);
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 12px rgba(108, 99, 255, 0.08);
-}
-
-.dash-quote-icon {
-  font-size: 1.4rem;
-  margin-bottom: 0.5rem;
-}
-
-.dash-quote-text {
-  font-size: 1rem;
-  color: var(--text);
-  font-style: italic;
-  line-height: 1.6;
-  margin-bottom: 0.4rem;
-}
-
-.dash-quote-author {
-  font-size: 0.85rem;
-  color: var(--text-light);
-  font-weight: 600;
-}
-
-.dash-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.dash-stat-card {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 1.25rem 1rem;
-  text-align: center;
-  box-shadow: 0 2px 12px rgba(108, 99, 255, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.dash-stat-num {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--primary);
-}
-
-.dash-stat-label {
-  font-size: 0.85rem;
-  color: var(--text-light);
-}
-
-.dash-section {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 1.25rem 1.5rem;
-  box-shadow: 0 2px 12px rgba(108, 99, 255, 0.08);
-}
-
-.dash-section-title {
-  font-size: 1rem;
+.app-toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 5.25rem;
+  z-index: 99990 !important;
+  max-width: min(22rem, calc(100vw - 2rem));
+  padding: 0.65rem 1.1rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  color: var(--text);
-  margin-bottom: 1rem;
+  line-height: 1.4;
+  text-align: center;
+  color: #3d3550;
+  background: linear-gradient(145deg, #fdf8ff 0%, #f0e8ff 100%);
+  border: 2px solid rgba(108, 99, 255, 0.4);
+  border-radius: 999px;
+  box-shadow: 0 8px 28px rgba(108, 99, 255, 0.22);
+  pointer-events: none;
 }
 
-.dash-recents-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+.app-toast--error {
+  color: #6b2d3a;
+  background: linear-gradient(145deg, #fff8fa 0%, #ffe0ea 100%);
+  border-color: rgba(255, 101, 132, 0.45);
+  box-shadow: 0 8px 24px rgba(255, 101, 132, 0.18);
 }
 
-.dash-recent-item {
+.app-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99995 !important;
+  background: rgba(45, 52, 54, 0.42);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 10px;
-  background: var(--bg);
-  font-size: 0.9rem;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.app-sheet {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.35rem 1.5rem;
+  max-width: 22rem;
+  width: 100%;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--border);
+}
+
+.app-sheet-text {
+  font-size: 0.98rem;
+  font-weight: 600;
   color: var(--text);
-  cursor: pointer;
-  transition: background 0.15s;
+  line-height: 1.45;
+  margin: 0 0 1rem;
 }
 
-.dash-recent-item:hover {
-  background: #e8e5ff;
+.app-sheet-input {
+  display: none;
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.95rem;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  font-family: inherit;
 }
 
-.dash-recent-icon {
-  font-size: 1.1rem;
+.app-sheet-input.app-sheet-input--show {
+  display: block;
 }
 
-.dash-empty {
+.app-sheet-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.app-sheet-btn {
+  padding: 0.55rem 1.15rem;
   font-size: 0.9rem;
-  color: var(--text-light);
-  text-align: center;
-  padding: 1rem 0;
+  font-weight: 600;
+  border-radius: 999px;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+
+.app-sheet-btn--ghost {
+  background: var(--bg);
+  color: var(--text);
+  border: 2px solid var(--border);
+}
+
+.app-sheet-btn--primary {
+  background: linear-gradient(135deg, #6c63ff 0%, #9b8cff 100%);
+  color: #fff;
 }

@@ -73,7 +73,7 @@
     window.location.reload();
   };
 
-  /** Call after successful /auth/login or /auth/signup (backend) so header matches */
+  
   window.applyBackpackApiUser = function (user) {
     if (!user || !user.email) return;
     setSession({ email: user.email, name: user.name || 'Student' });

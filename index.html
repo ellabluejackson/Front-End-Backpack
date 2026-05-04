@@ -8,7 +8,7 @@
   <script src="api.js" defer></script>
   <script src="auth.js" defer></script>
   <script src="lofi-api.js" defer></script>
-  <script src="backpack.js" defer></script>
+  <script src="backpack.js?v=2" defer></script>
 </head>
 <body>
 
@@ -687,7 +687,7 @@
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value;
       if (!email || !password) {
-        alert('Please enter email and password.');
+        showAppToast('Please enter email and password.', 'error');
         return;
       }
       const backendLogin = (typeof login === 'function')
@@ -699,7 +699,7 @@
           if (typeof applyBackpackApiUser === 'function') {
             applyBackpackApiUser(res.user);
           }
-          alert('Welcome back, ' + res.user.name + '!');
+          showAppToast('Welcome back, ' + res.user.name + '! 🎒');
         })
         .catch(async function (err) {
           console.warn('Backend login failed, trying local login:', err);
@@ -707,9 +707,9 @@
             if (typeof localBackpackLogin !== 'function') throw new Error('Local auth unavailable.');
             const res = await localBackpackLogin(email, password);
             closeModal('loginModal');
-            alert('Welcome back, ' + res.user.name + '!');
+            showAppToast('Welcome back, ' + res.user.name + '! 🎒');
           } catch (localErr) {
-            alert(localErr && localErr.message ? localErr.message : 'Login failed.');
+            showAppToast(localErr && localErr.message ? localErr.message : 'Login failed.', 'error');
           }
         });
     }
@@ -719,7 +719,7 @@
       const email = document.getElementById('signupEmail').value.trim();
       const password = document.getElementById('signupPassword').value;
       if (!name || !email || !password) {
-        alert('Please fill in all fields.');
+        showAppToast('Please fill in all fields.', 'error');
         return;
       }
       const backendSignup = (typeof signup === 'function')
@@ -732,7 +732,7 @@
           if (typeof applyBackpackApiUser === 'function') {
             applyBackpackApiUser(res.user);
           }
-          alert('Account created. Hi, ' + res.user.name + '!');
+          showAppToast('Account created. Hi, ' + res.user.name + '! ✨');
         })
         .catch(async function (err) {
           console.warn('Backend signup failed, trying local signup:', err);
@@ -740,9 +740,9 @@
             if (typeof localBackpackSignup !== 'function') throw new Error('Local auth unavailable.');
             const res = await localBackpackSignup(name, email, password);
             closeModal('signupModal');
-            alert('Account created. Hi, ' + res.user.name + '!');
+            showAppToast('Account created. Hi, ' + res.user.name + '! ✨');
           } catch (localErr) {
-            alert(localErr && localErr.message ? localErr.message : 'Signup failed.');
+            showAppToast(localErr && localErr.message ? localErr.message : 'Signup failed.', 'error');
           }
         });
     }

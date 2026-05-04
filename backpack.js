@@ -1,3 +1,148 @@
+/* In-app toast + sheet (bundled so localhost:5500 always loads it with this file) */
+(function () {
+  'use strict';
+  var Z_TOAST = 99990;
+  var Z_SHEET = 99995;
+  var appToastTimer = null;
+  var sheetResolve = null;
+  var sheetMode = 'confirm';
+
+  function ensureAppToast() {
+    var el = document.getElementById('appToast');
+    if (el) return el;
+    el = document.createElement('div');
+    el.id = 'appToast';
+    el.className = 'app-toast';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.setAttribute('hidden', '');
+    document.body.appendChild(el);
+    return el;
+  }
+
+  window.showAppToast = function (message, variant) {
+    var el = ensureAppToast();
+    if (!message) return;
+    el.textContent = message;
+    el.className = 'app-toast' + (variant === 'error' ? ' app-toast--error' : '');
+    el.style.zIndex = String(Z_TOAST);
+    el.removeAttribute('hidden');
+    if (appToastTimer) clearTimeout(appToastTimer);
+    appToastTimer = setTimeout(function () {
+      el.setAttribute('hidden', '');
+      appToastTimer = null;
+    }, 4200);
+  };
+
+  function wireAppSheetOnce(ov) {
+    if (ov.dataset.wired === '1') return;
+    ov.dataset.wired = '1';
+    var input = ov.querySelector('.app-sheet-input');
+    var cancel = ov.querySelector('.app-sheet-cancel');
+    var ok = ov.querySelector('.app-sheet-ok');
+
+    function finish(value) {
+      ov.setAttribute('hidden', '');
+      document.body.style.overflow = '';
+      if (input) {
+        input.classList.remove('app-sheet-input--show');
+        input.setAttribute('hidden', '');
+      }
+      var fn = sheetResolve;
+      sheetResolve = null;
+      if (fn) fn(value);
+    }
+
+    cancel.addEventListener('click', function () {
+      finish(sheetMode === 'prompt' ? null : false);
+    });
+    ok.addEventListener('click', function () {
+      if (sheetMode === 'prompt' && input) {
+        var v = input.value;
+        finish(v != null && String(v).trim() ? String(v).trim() : 'Untitled');
+      } else {
+        finish(true);
+      }
+    });
+    ov.addEventListener('click', function (e) {
+      if (e.target === ov) finish(sheetMode === 'prompt' ? null : false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (!ov || ov.hasAttribute('hidden')) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        finish(sheetMode === 'prompt' ? null : false);
+      } else if (e.key === 'Enter' && sheetMode === 'prompt' && input && document.activeElement === input) {
+        e.preventDefault();
+        var v = input.value;
+        finish(v != null && String(v).trim() ? String(v).trim() : 'Untitled');
+      }
+    });
+  }
+
+  function ensureAppSheet() {
+    var ov = document.getElementById('appSheetOverlay');
+    if (ov) return ov;
+    ov = document.createElement('div');
+    ov.id = 'appSheetOverlay';
+    ov.className = 'app-sheet-overlay';
+    ov.setAttribute('hidden', '');
+    ov.style.zIndex = String(Z_SHEET);
+    ov.innerHTML =
+      '<div class="app-sheet" role="dialog" aria-modal="true">' +
+      '<p class="app-sheet-text"></p>' +
+      '<input type="text" class="app-sheet-input" autocomplete="off" hidden />' +
+      '<div class="app-sheet-actions">' +
+      '<button type="button" class="app-sheet-btn app-sheet-btn--ghost app-sheet-cancel">Cancel</button>' +
+      '<button type="button" class="app-sheet-btn app-sheet-btn--primary app-sheet-ok">OK</button>' +
+      '</div></div>';
+    document.body.appendChild(ov);
+    wireAppSheetOnce(ov);
+    return ov;
+  }
+
+  window.showAppConfirm = function (message) {
+    return new Promise(function (resolve) {
+      var ov = ensureAppSheet();
+      var input = ov.querySelector('.app-sheet-input');
+      var text = ov.querySelector('.app-sheet-text');
+      sheetMode = 'confirm';
+      sheetResolve = resolve;
+      if (text) text.textContent = message || '';
+      if (input) {
+        input.classList.remove('app-sheet-input--show');
+        input.setAttribute('hidden', '');
+      }
+      ov.removeAttribute('hidden');
+      document.body.style.overflow = 'hidden';
+    });
+  };
+
+  window.showAppPrompt = function (message, defaultValue) {
+    return new Promise(function (resolve) {
+      var ov = ensureAppSheet();
+      var input = ov.querySelector('.app-sheet-input');
+      var text = ov.querySelector('.app-sheet-text');
+      sheetMode = 'prompt';
+      sheetResolve = resolve;
+      if (text) text.textContent = message || '';
+      if (input) {
+        input.value = defaultValue != null ? String(defaultValue) : '';
+        input.removeAttribute('hidden');
+        input.classList.add('app-sheet-input--show');
+        setTimeout(function () {
+          try {
+            input.focus();
+            input.select();
+          } catch (e) {}
+        }, 60);
+      }
+      ov.removeAttribute('hidden');
+      document.body.style.overflow = 'hidden';
+    });
+  };
+})();
+
 // backpack — folders, notebooks, and flashcards -yr
 var bpItems = [];
 var bpCurrentFolder = null;
@@ -6,6 +151,8 @@ var bpEditingItem = null;
 var bpTestIndex = 0;
 var bpTestFlipped = false;
 var BP_STORAGE_PREFIX = 'backpack_data_v1::';
+var BP_EMOJI_STORAGE_PREFIX = 'backpack_folder_emoji_v1::';
+var bpPendingFolderEmoji = null;
 
 function bpCurrentUserEmail() {
   if (typeof window.getBackpackUser !== 'function') return null;
@@ -106,6 +253,50 @@ function numId(v) {
   return isNaN(n) ? null : n;
 }
 
+function bpFolderEmojiStorageKey() {
+  var email = bpCurrentUserEmail();
+  return email ? BP_EMOJI_STORAGE_PREFIX + email : null;
+}
+
+function bpLoadFolderEmojiMap() {
+  var key = bpFolderEmojiStorageKey();
+  if (!key) return {};
+  try {
+    var raw = localStorage.getItem(key);
+    var o = raw ? JSON.parse(raw) : {};
+    return o && typeof o === 'object' ? o : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function bpSaveFolderEmojiMap(map) {
+  var key = bpFolderEmojiStorageKey();
+  if (!key) return;
+  try {
+    localStorage.setItem(key, JSON.stringify(map || {}));
+  } catch (e) {}
+}
+
+function bpSetFolderEmojiByNumericId(numericId, emojiChar) {
+  if (numericId == null || !emojiChar) return;
+  var map = bpLoadFolderEmojiMap();
+  map[String(numericId)] = emojiChar;
+  bpSaveFolderEmojiMap(map);
+}
+
+function bpMergeEmojiFromStorage() {
+  var map = bpLoadFolderEmojiMap();
+  bpItems.forEach(function (item) {
+    if (item.type === 'folder') {
+      var nid = numId(item.id);
+      if (nid != null && map[String(nid)]) item.emoji = map[String(nid)];
+    } else if (item.type === 'flashcards' && item._folderId != null && map[String(item._folderId)]) {
+      item.emoji = map[String(item._folderId)];
+    }
+  });
+}
+
 // Load from backend and build bpItems
 function bpBuildItems(folders, notes, flashcards) {
   var items = [];
@@ -125,10 +316,16 @@ function bpBuildItems(folders, notes, flashcards) {
       .map(function(c) { return { id: c.id, question: c.front, answer: c.back }; });
   }
   function toParentId(v) { return v != null ? String(v) : null; }
+  function folderEmojiFromApi(f) {
+    if (f.emoji != null && String(f.emoji).trim() !== '') return String(f.emoji).trim();
+    if (f.icon != null && String(f.icon).trim() !== '') return String(f.icon).trim();
+    return null;
+  }
   folders.forEach(function(f) {
     var hasCards = cardsInFolder(f.id).length > 0;
     var markedAsFlashcardSet = f.is_flashcard_set === true || f.is_flashcard_set === 1;
     var isFlashcardSet = markedAsFlashcardSet || (!hasSubfolders(f.id) && !hasNotesInFolder(f.id) && hasCards);
+    var rowEmoji = folderEmojiFromApi(f);
     if (isFlashcardSet) {
       items.push({
         id: 'fc_' + f.id,
@@ -136,7 +333,8 @@ function bpBuildItems(folders, notes, flashcards) {
         type: 'flashcards',
         name: f.name,
         parentId: toParentId(f.parent_id),
-        content: cardsInFolder(f.id)
+        content: cardsInFolder(f.id),
+        emoji: rowEmoji
       });
     } else {
       items.push({
@@ -144,7 +342,8 @@ function bpBuildItems(folders, notes, flashcards) {
         type: 'folder',
         name: f.name,
         parentId: toParentId(f.parent_id),
-        content: null
+        content: null,
+        emoji: rowEmoji
       });
     }
   });
@@ -159,6 +358,7 @@ function bpBuildItems(folders, notes, flashcards) {
     });
   });
   bpItems = items;
+  bpMergeEmojiFromStorage();
 }
 
 function bpLoadFromBackend() {
@@ -237,7 +437,11 @@ function bpDelete(id) {
   }).catch(function(err) {
     if (err && err.status) {
       // server responded with an error — don't delete locally
-      alert('Could not delete: Server error ' + err.status);
+      if (typeof window.showAppToast === 'function') {
+        window.showAppToast('Could not delete: server error ' + err.status, 'error');
+      } else {
+        console.warn('Could not delete: server error ' + err.status);
+      }
     } else {
       // network unreachable — remove locally so the user isn't stuck
       bpItems = bpItems.filter(function(i) { return i.id !== id; });
@@ -262,7 +466,14 @@ function bpDeleteClick(ev, id) {
 function bpConfirmDelete(id) {
   var item = bpFind(id);
   if (!item) return;
-  if (confirm('Delete "' + item.name + '"?')) bpDelete(id);
+  var msg = 'Delete "' + item.name + '"?';
+  if (typeof window.showAppConfirm !== 'function') {
+    console.error('app-ui.js must load before backpack.js (showAppConfirm missing).');
+    return;
+  }
+  window.showAppConfirm(msg).then(function (ok) {
+    if (ok) bpDelete(id);
+  });
 }
 
 // -- navigation -yr --
@@ -340,20 +551,32 @@ function bpPromptCreate(type) {
   var isRoot = bpCurrentFolder === null;
 
   if ((type === 'notebook' || type === 'flashcards') && isRoot) {
-    alert('Open a folder first. Notebooks and flashcards need to be inside a folder!');
+    if (typeof window.showAppToast === 'function') {
+      window.showAppToast('Open a folder first — notebooks & flashcards live inside folders.', 'error');
+    }
     return;
   }
 
   var labels = { folder: 'folder', notebook: 'notebook', flashcards: 'flashcard set' };
-  var name = prompt('Name your new ' + labels[type] + ':');
-  if (name === null) return;
-  name = (name && name.trim()) ? name.trim() : 'Untitled';
+  var promptMsg = 'Name your new ' + labels[type] + ':';
 
-  if (type === 'folder') {
-    bpPickEmoji(function(emoji) { bpDoCreate(type, name, emoji); });
-  } else {
-    bpDoCreate(type, name, null);
+  function continueCreate(name) {
+    if (name === null || name === undefined) return;
+    name = (name && String(name).trim()) ? String(name).trim() : 'Untitled';
+    if (type === 'folder') {
+      bpPickEmoji(function (emoji) {
+        bpDoCreate(type, name, emoji);
+      });
+    } else {
+      bpDoCreate(type, name, null);
+    }
   }
+
+  if (typeof window.showAppPrompt !== 'function') {
+    console.error('app-ui.js must load before backpack.js (showAppPrompt missing).');
+    return;
+  }
+  window.showAppPrompt(promptMsg, 'Untitled').then(continueCreate);
 }
 
 function bpDoCreate(type, name, emoji) {
@@ -364,18 +587,45 @@ function bpDoCreate(type, name, emoji) {
   }
   var p = null;
   if (type === 'folder' || type === 'flashcards') {
-    p = createFolder({ name: name, parent_id: parentId, is_flashcard_set: type === 'flashcards' });
+    var folderBody = { name: name, parent_id: parentId, is_flashcard_set: type === 'flashcards' };
+    if (emoji) folderBody.emoji = emoji;
+    p = createFolder(folderBody);
   } else {
     p = createNote({ title: name, content: '', folder_id: parentId });
   }
-  p.then(function() {
+  p.then(function (res) {
+    if (type === 'folder' && emoji) {
+      var newId = res && (res.id != null ? res.id : res.folder_id);
+      if (newId != null) {
+        bpSetFolderEmojiByNumericId(newId, emoji);
+      } else {
+        bpPendingFolderEmoji = { name: name, parentId: parentId, emoji: emoji };
+      }
+    }
     return bpLoadFromBackend();
-  }).then(function() {
-    bpSaveState();
-    bpRender();
-  }).catch(function() {
-    bpCreate(type, name, bpCurrentFolder, emoji);
-  });
+  })
+    .then(function () {
+      if (bpPendingFolderEmoji) {
+        var pend = bpPendingFolderEmoji;
+        bpPendingFolderEmoji = null;
+        var match = bpItems.find(function (i) {
+          if (i.type !== 'folder' || i.name !== pend.name) return false;
+          var ip = numId(i.parentId);
+          var pp = pend.parentId == null ? null : pend.parentId;
+          return ip === pp;
+        });
+        if (match && pend.emoji) {
+          var mid = numId(match.id);
+          if (mid != null) bpSetFolderEmojiByNumericId(mid, pend.emoji);
+        }
+      }
+      bpMergeEmojiFromStorage();
+      bpSaveState();
+      bpRender();
+    })
+    .catch(function () {
+      bpCreate(type, name, bpCurrentFolder, emoji);
+    });
 }
 
 function bpPickEmoji(callback) {
