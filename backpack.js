@@ -1,4 +1,4 @@
-/* In-app toast + sheet (bundled so localhost:5500 always loads it with this file) */
+// popup toast + sheet
 (function () {
   'use strict';
   var Z_TOAST = 99990;
@@ -476,7 +476,7 @@ function bpConfirmDelete(id) {
   });
 }
 
-// -- navigation -yr --
+// navigation -yr 
 
 function bpOpen(id) {
   var item = bpFind(id);
@@ -840,7 +840,7 @@ function bpRenderCards(app) {
 
   app.innerHTML = html;
 
-  // live-save card edits -yr
+  // live save card edits 
   document.querySelectorAll('.bp-card-input').forEach(function(input) {
     input.addEventListener('input', function() {
       var idx = parseInt(this.getAttribute('data-index'));
